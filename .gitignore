@@ -150,3 +150,7 @@ vite.config.ts.timestamp-*
 
 # Fallow cache
 .fallow/
+# Hands-on state and attached repos
+.workshop/
+targets/*
+!targets/.gitkeep

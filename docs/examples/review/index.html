@@ -1,0 +1,749 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Review Skill – Examples</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../assets/site.css">
+<link rel="stylesheet" href="../../assets/nav.css">
+<link rel="stylesheet" href="../../assets/examples.css">
+</head>
+<body class="ex">
+<nav class="site-nav" aria-label="Training pages">
+  <div class="inner">
+    <a class="brand" href="../../" aria-label="Home"><span class="wd-logo" role="img" aria-label="Wunderdog"></span></a>
+    <ul>
+      <li><a class="link icon-link" href="../../slides/" aria-label="Slides" title="Slides"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/></svg></a></li>
+      <li><a class="link icon-link" href="../../examples/" aria-label="Example skills" title="Example skills" aria-current="page"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></svg></a></li>
+      <li><a class="link icon-link" href="../../slides/ai-native-development.pdf" download aria-label="Download the slides with speaker notes (PDF)" title="Download the slides with speaker notes (PDF)"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg></a></li>
+      <li><a class="link icon-link" href="https://github.com/wunderdogsw/ai-driven-development-day" aria-label="GitHub repository" title="GitHub repository"><svg class="icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg></a></li>
+    </ul>
+  </div>
+</nav>
+<main class="ex-wrap">
+  <header class="ex-head">
+    <a class="ex-back" href="../">← All examples</a>
+    <div class="ex-kicker">Example skill · Part 5</div>
+    <h1><code>/review</code></h1>
+    <p class="ex-lead">The review skill leads a team of independent subagents: two verify facts, two or three review the code and the logic. It cross-checks what they found, keeps what holds up, and writes review comments, on the PR or in a local file before there is a PR. It never edits code.</p>
+  </header>
+  <section class="ex-good"><h2>What makes it good</h2><ul>
+      <li><b>Machines first</b><span>Static checks, file drift, docs and the grade run as commands, with the same result every time. Subagents only do what needs reading.</span></li>
+      <li><b>Flaky tests and a trace</b><span>Each AC test runs 3 times; a test that passes only sometimes is blocking. The E2E test runs with a Playwright trace that goes in the PR evidence.</span></li>
+      <li><b>Other reviewers count too</b><span>CodeRabbit, Greptile and SonarCloud comments on the PR join the cross-check as one more independent source.</span></li>
+      <li><b>Independent subagents</b><span>Each subagent gets only the packet and its own task, never another one's findings. When two of them find the same thing alone, it means something.</span></li>
+      <li><b>Verify and review are separate</b><span>Verifiers run tests and the app and report facts. Reviewers read code (review-code) and logic against the ACs (review-logic).</span></li>
+      <li><b>The diagram is drawn twice</b><span>The flow verifier redraws the sequence diagram from the code without looking at the plan, then compares arrow by arrow. A new arrow on a file the drift guard also flagged counts as found twice.</span></li>
+      <li><b>A third reviewer when it matters</b><span>review-fresh-eyes reads without the plan, for Large or Critical changes or when the other two disagree.</span></li>
+      <li><b>Cross-check rules</b><span>Found twice = confirmed. Found once = the lead checks it. Facts beat readings. Disagreement goes to the human. Rejected findings are listed with a reason.</span></li>
+      <li><b>Comments people can act on</b><span>Conventional Comments labels, one problem per comment, why and evidence, a fix when there is one. Examples for PR comments and for a local review before the PR.</span></li>
+      <li><b>Asks before it posts</b><span>Comments are written to a file first. Posting to the PR is a write, so the user approves it.</span></li>
+  </ul></section>
+  <div class="ex-layout">
+    <nav class="ex-tree" aria-label="Files">
+      <div class="root">.claude/</div>
+      <a href="#f0">skills/review/SKILL.md</a>
+      <a href="#f1">skills/review/references/findings.md</a>
+      <a href="#f2">skills/review/references/comments.md</a>
+      <a href="#f3">skills/review/references/checks.md</a>
+      <a href="#f4">skills/review/references/grading.md</a>
+      <a href="#f5">skills/review/scripts/drift-guard.mjs</a>
+      <a href="#f6">skills/review/scripts/grade.mjs</a>
+      <a href="#f7">skills/review/scripts/glob.mjs</a>
+      <a href="#f8">skills/review/references/grading.json</a>
+      <a href="#f9">agents/review-ac-verifier.md</a>
+      <a href="#f10">agents/review-flow-verifier.md</a>
+      <a href="#f11">agents/review-code.md</a>
+      <a href="#f12">agents/review-logic.md</a>
+      <a href="#f13">agents/review-fresh-eyes.md</a>
+    </nav>
+    <div class="ex-files">
+    <section class="ex-file" id="f0">
+      <p class="ex-why">The lead's steps: packet, mechanical checks, verification subagents, reviewer subagents, cross-check, grade, comments. Subagents start in one message so they run in parallel.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/skills/review/SKILL.md</span><button class="ex-copy" type="button" data-target="c0">Click to Copy</button></div>
+        <pre id="c0"><span class="fm">---</span>
+<span class="fm">name: review</span>
+<span class="fm">description: Review a change against its approved plan in plans/&lt;ticket&gt;/, with independent subagents that verify and review, then cross-check their findings and write review comments. Use before opening a PR, on an open PR, or when asked to review a branch, for example &quot;/review JIRA-1234&quot;.</span>
+<span class="fm">argument-hint: &lt;ticket id&gt;</span>
+<span class="fm">allowed-tools: Read Grep Glob Bash(git diff *) Bash(git ls-files *) Bash(git log *) Bash(git branch --show-current) Bash(node ${CLAUDE_SKILL_DIR}/scripts/drift-guard.mjs *) Bash(node ${CLAUDE_SKILL_DIR}/scripts/grade.mjs *) Bash(dotnet build *) Bash(dotnet test *) Bash(vendor/bin/phpstan *) Bash(vendor/bin/phpunit *) Bash(npx tsc *) Bash(npx eslint *) Bash(npx fallow *) Bash(gh pr view *) Bash(glab mr view *) mcp__ado__repo_pull_request mcp__ado__wit_work_item mcp__atlassian__getJiraIssue</span>
+<span class="fm">---</span>
+
+<span class="h"># Review a change</span>
+
+You lead the review. Machines run the mechanical checks. Independent subagents verify and review. You cross-check what they found, and write the comments. You never edit code, tests or plans. The only files you write are in `plans/&lt;TICKET&gt;/review/`.
+
+Ticket: $ARGUMENTS. If empty, take it from the branch name (`feature/JIRA-1234-…`). If there is none, find the open PR for the branch (GitHub: `gh pr view`; Azure DevOps: MCP `repo_pull_request`; GitLab: `glab mr view`) and use its linked ticket. If there is still none, ask.
+
+<span class="h">## 1. Prepare the packet</span>
+
+Collect the inputs and write them to `plans/&lt;TICKET&gt;/review/packet.md`. Every subagent gets this file and nothing else from you.
+
+- Base: `origin/main`.
+- Changed files: `git diff --name-only origin/main` plus `git ls-files --others --exclude-standard`.
+- How to see the diff: `git diff origin/main -- &lt;file&gt;`.
+- Intent: `plans/&lt;TICKET&gt;/acs.md`, `sequence.md`, `plan.md`. No plan files? Read the ticket from the team's tracker (the same way as the `discover` skill's `sources.md`: Jira, Linear, GitHub, Azure Boards or GitLab), put its text in the packet, and write &quot;No plan&quot; at the top.
+- The check commands from [references/checks.md](references/checks.md) for the stacks the change touches.
+- The findings format: [references/findings.md](references/findings.md).
+- **Other reviewers already on the PR.** If a PR exists, collect the comments that CodeRabbit, Greptile or the SonarCloud quality gate left on it. They go into the cross-check as one more independent source (`P`). Don't send them to the subagents.
+
+Pre-grade the change: `node ${CLAUDE_SKILL_DIR}/scripts/grade.mjs --base origin/main` ([references/grading.md](references/grading.md)). It decides how many reviewers run in step 4.
+
+<span class="h">## 2. Mechanical checks (you, no model judgement)</span>
+
+Run these yourself. They give the same result every time.
+
+- Static checks from `checks.md`. Keep only what failed, at most 20 lines per command.
+- File drift: `node ${CLAUDE_SKILL_DIR}/scripts/drift-guard.mjs --plan plans/&lt;TICKET&gt;/plan.md --base origin/main`
+- Docs: changelog for new behavior, ADR for a changed decision, README for changed setup.
+
+<span class="h">## 3. Verification subagents (parallel, independent)</span>
+
+Start both in **one message**, so they run at the same time. Give each one the packet path and its task. Nothing else.
+
+| Subagent | Checks |
+|---|---|
+| `review-ac-verifier` | One test per AC exists, runs and passes, and tests the AC's values. Runs each AC test 3 times to catch flaky tests, and checks for fixed seeds and frozen clocks. Property test per &quot;must never&quot; rule. E2E for the main flow, with a Playwright trace (and video if the config records it). Test files changed after the plan was approved. |
+| `review-flow-verifier` | Redraws the sequence diagram from the changed code without looking at the plan's one, then compares the two arrow by arrow: match, missing, new, changed. Saves both to `review/sequence-from-code.md`. If the web app runs locally, goes through the main flow with the Playwright MCP server and saves a screenshot per AC. |
+
+Skip `review-ac-verifier` and the diagram part when there is no plan. Say so in the output.
+
+<span class="h">## 4. Reviewer subagents (parallel, independent)</span>
+
+Start them in **one message**, together with step 3 if you can. Each one reviews alone. **Never pass one reviewer's findings to another.** Independent reviews are what make agreement mean something.
+
+| Subagent | Looks at | Runs |
+|---|---|---|
+| `review-code` | Code level: bugs, error handling, nulls, security, performance, dead code, duplication, team conventions | always |
+| `review-logic` | Business logic against the ACs: missing, extra, edge cases, concurrency, &quot;must never&quot; rules, data consistency | always |
+| `review-fresh-eyes` | The diff and the ticket title only, no ACs or plan. Anything that looks wrong to someone who wasn't in the planning | pre-grade Large or Critical, or when `review-code` and `review-logic` disagree |
+
+<span class="h">## 5. Cross-check the findings</span>
+
+Put every finding from steps 2–4 in one list. Then:
+
+1. **Group.** Same file, lines within 10 of each other, same problem → one finding. Keep every source: &quot;found by review-code, review-logic&quot;.
+2. **Agreement.** Found by two or more independent sources (subagents, mechanical checks, or another reviewer tool on the PR) → **confirmed**.
+3. **Single finding.** Found by one → check it yourself: read the lines, run the test or the check if one exists. Then **confirmed**, **rejected** (with the reason), or **unsure**.
+4. **Facts beat readings.** A test run or a check output outranks a reviewer's reading. If a reviewer says AC2 is not handled but the AC2 test passes, check that the test really uses the AC2 values before you reject the finding.
+5. **Disagreement.** Two subagents say opposite things → **unsure**, both views go to the human.
+6. **Diagram and drift.** A `new` or `changed` arrow and a drift-guard &quot;not in the plan&quot; line on the same file are the same finding, found twice → confirmed. A `missing` arrow and a missing AC test from `review-ac-verifier` for the same AC → confirmed.
+7. **Severity.** `blocking` only when it breaks an AC, a &quot;must never&quot; rule, security, data, or a check. Everything else is `non-blocking` or `nitpick`.
+8. **Nothing is dropped silently.** Rejected findings are listed with their reason in `review.md`.
+
+Unsure findings become `question:` comments. Confirmed findings become comments with their label.
+
+<span class="h">## 6. Grade</span>
+
+Start from the script's grade. Raise it if the review found business logic, a data change or a security finding that the paths didn't show. Never lower it. See [references/grading.md](references/grading.md).
+
+<span class="h">## 7. Write the comments</span>
+
+How to write them, with examples: [references/comments.md](references/comments.md).
+
+**Is there a PR?** GitHub: `gh pr view --json number,url`. Azure DevOps: MCP `repo_pull_request` (`list`, source branch = current branch). GitLab: `glab mr view`.
+
+- **Not yet a PR** → write `plans/&lt;TICKET&gt;/review/review.md`: the summary, the fix list (blocking first), the comments by file with `path:line`, and the rejected findings. Tell the user: &quot;Fix the blocking items in review.md, then run /review again.&quot;
+- **PR exists** → write the comments to `plans/&lt;TICKET&gt;/review/comments.md` first and show them. Ask: &quot;Post N comments to PR #&lt;n&gt;?&quot; Only on yes, post each on its file and line, plus one summary comment. GitHub: one review with `gh api repos/{owner}/{repo}/pulls/&lt;n&gt;/reviews` (inline comments in `comments`). Azure DevOps: MCP `repo_pull_request_thread_write` (`create`). GitLab: `glab api` merge request discussions with a position. This write is not pre-approved, so the user approves it.
+
+<span class="h">## Output to the user</span>
+
+```
+Review: JIRA-1234 (feature/JIRA-1234-phone-on-profile), grade Large, needs a human
+
+Checks: 1 failed (eslint), drift: 1 unplanned file, 1 missing test file
+Tests: AC1, AC2 pass 3 of 3 runs · AC3 missing · no flaky tests · E2E trace: plans/JIRA-1234/review/e2e-trace.zip
+Diagram: 4 match, 1 missing (AC3), 1 new (API → Cache), 1 changed (200 OK body)
+Subagents: ac-verifier, flow-verifier, review-code, review-logic, review-fresh-eyes
+Findings: 6 confirmed (2 blocking), 1 unsure, 3 rejected
+
+Blocking
+1. AC3: empty phone saved as &quot;&quot; not NULL — ProfileService.cs:57 (review-logic, ac-verifier)
+2. No test for AC3 — Api.Tests/ProfilePhoneTests.cs (ac-verifier, drift-guard)
+
+Non-blocking
+3. New cache write not in the plan — ProfileService.cs:72 (flow-verifier, drift-guard)
+
+Written: plans/JIRA-1234/review/review.md, sequence-from-code.md
+```</pre>
+      </div>
+    </section>
+    <section class="ex-file" id="f1">
+      <p class="ex-why">The one format every subagent returns. Every finding has a place and evidence the lead can check, so findings from different subagents can be compared.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/skills/review/references/findings.md</span><button class="ex-copy" type="button" data-target="c1">Click to Copy</button></div>
+        <pre id="c1"><span class="h"># Findings format</span>
+
+Every subagent returns its findings in this format, and nothing else. No summary, no praise.
+
+```
+- id: L2
+  where: src/Api/Profile/ProfileService.cs:57
+  kind: bug | security | performance | maintainability | logic | missing | extra | test | docs
+  severity: blocking | non-blocking | nitpick
+  claim: One sentence on what is wrong.
+  evidence: The code lines, or the command and its output, that show it.
+  ac: AC3            # if it is about an AC, else leave out
+  confidence: high | medium | low
+```
+
+Rules:
+
+- `where` is one file and one line (or a range like `57-63`). A finding without a place is not a finding.
+- `evidence` is something the lead can check: quoted code, a test name and its result, a command and its output. &quot;Looks wrong&quot; is not evidence.
+- One problem per finding. Two problems on the same line are two findings.
+- `blocking` only when it breaks an AC, a &quot;must never&quot; rule, security, data, or a check.
+- If you found nothing in your area, return `findings: []` and one line on what you checked.
+
+The id prefix shows the source: `V` ac-verifier, `F` flow-verifier, `C` review-code, `L` review-logic, `E` review-fresh-eyes, `M` mechanical checks, `P` other reviewers already on the PR (CodeRabbit, Greptile, SonarCloud).</pre>
+      </div>
+    </section>
+    <section class="ex-file" id="f2">
+      <p class="ex-why">How to write review comments: rules, PR examples (blocking, missing test, suggestion, question, nitpick, summary), the local review.md for work that is not a PR yet, and bad → good.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/skills/review/references/comments.md</span><button class="ex-copy" type="button" data-target="c2">Click to Copy</button></div>
+        <pre id="c2"><span class="h"># Writing review comments</span>
+
+<span class="h">## Rules</span>
+
+1. **One problem per comment**, on the line where it is.
+2. **Label first**, from [Conventional Comments](https://conventionalcomments.org): `issue (blocking):`, `issue (non-blocking):`, `suggestion (non-blocking):`, `question:`, `nitpick:`. The reader knows at once if it must be fixed.
+3. **What, then why.** One sentence on what is wrong. One or two on why it matters: the AC, the rule, or what breaks.
+4. **Evidence.** The line, the test, the command output. The reader can check it in seconds.
+5. **A fix when you have one**, as a code block. Keep it small.
+6. **About the code, not the person.** &quot;This line saves…&quot;, not &quot;You save…&quot;.
+7. **Plain words. No praise padding, no &quot;just&quot;, no &quot;obviously&quot;.**
+8. **Unsure? Ask.** A `question:` comment says what you checked and what you don't know.
+
+<span class="h">## PR comments</span>
+
+These go on the file and line in the PR. Azure DevOps and GitHub render the markdown. On GitHub, a ` ```suggestion ` block lets the author apply the fix with one click.
+
+<span class="h">### Blocking issue</span>
+
+````markdown
+**issue (blocking):** An empty phone number is saved as `&quot;&quot;`, not removed.
+
+AC3 says an empty field removes the phone number. This line stores `request.Phone ?? &quot;&quot;`, so the user still has a phone value, and `&quot;&quot;` breaks the &quot;always E.164&quot; rule.
+
+```csharp
+user.Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone;
+```
+
+Found by review-logic and ac-verifier (no AC3 test).
+````
+
+<span class="h">### Missing test</span>
+
+```markdown
+**issue (blocking):** AC3 has no test.
+
+`plan.md` lists `ProfilePhoneTests.RemovePhone` for AC3. It is not in `ProfilePhoneTests.cs`. Add it before the fix above, so the test fails first.
+```
+
+<span class="h">### Flaky test</span>
+
+```markdown
+**issue (blocking):** `ProfilePhoneTests.RateLimit` is flaky: it passed 2 of 3 runs.
+
+It sends three saves and expects the third to get 429 within 1 second, using the real clock. On a slow run the window passes before the third save. Use the fake `TimeProvider` the other rate limit tests use (`tests/Api.Tests/Support/FakeTime.cs`), so the test controls the time.
+```
+
+<span class="h">### Non-blocking suggestion</span>
+
+````markdown
+**suggestion (non-blocking):** Use the existing E.164 helper.
+
+`PhoneNumber.IsE164()` in `Shared/Contact/PhoneNumber.cs:12` already does this check, with tests. A second regex here can drift from it.
+
+```csharp
+RuleFor(x =&gt; x.Phone).Must(PhoneNumber.IsE164).When(x =&gt; x.Phone is not null);
+```
+````
+
+<span class="h">### Question</span>
+
+```markdown
+**question:** Should the rate limit be per user or per session?
+
+AC2 says &quot;a logged-in user&quot;. The policy here partitions by session id (`Program.cs:88`), so one user with two tabs gets 4 saves per second. review-code and review-logic read this differently, so a human should decide.
+```
+
+<span class="h">### Diagram drift</span>
+
+```markdown
+**question:** This adds a cache write that the plan doesn't have.
+
+The sequence diagram in the plan ends with `API → DB: UPDATE Users`. The diagram redrawn from the code also has `API → Cache: SET profile` here, and `ProfileService.cs` is changed but not in the plan's file table. Was the cache part of the design? If yes, add it to `sequence.md` and `plan.md`. If not, remove it from this change.
+
+Found by flow-verifier and drift-guard.
+```
+
+<span class="h">### Nitpick</span>
+
+```markdown
+**nitpick:** `phoneNr` → `phoneNumber`, like the rest of the file.
+```
+
+<span class="h">### Summary comment (one per PR)</span>
+
+```markdown
+## Review: JIRA-1234 · grade Large · needs a human
+
+**Evidence**
+- AC1 → `ProfilePhoneTests.InvalidPhone` → passed
+- AC2 → `ProfilePhoneTests.RateLimit` → passed
+- AC3 → no test → **missing**
+- Must never → `PhoneProperties` (1,000 inputs) → passed
+- E2E → `web/e2e/profile.spec.ts` → passed 3 of 3 runs, trace attached (`e2e-trace.zip`)
+- Flaky tests: none
+- Screenshots: AC1, AC2 (AC3 not shown: not built)
+- SonarCloud quality gate: passed
+
+**Checks:** eslint failed on `ProfileForm.tsx:48`. Drift: `Shared/StringUtils.cs` changed, not in the plan.
+
+**Diagram** (redrawn from the code, compared with `sequence.md`)
+
+| Arrow | Result |
+|---|---|
+| API → DB: UPDATE Users SET Phone = NULL (AC3) | missing |
+| API → Cache: SET profile | new, not in the plan |
+| API → Web: 200 OK | changed: now returns the profile body |
+| 4 other arrows | match |
+
+**Blocking (2):** AC3 saves `&quot;&quot;` instead of removing the phone. AC3 has no test.
+**Questions (1):** rate limit per user or per session.
+
+Reviewed by 5 independent subagents and cross-checked with CodeRabbit's comments. Each blocking item was found by at least two sources, or checked by running the code.
+```
+
+<span class="h">## Not yet a PR: `review.md`</span>
+
+Same comments, in one local file. The author, or the agent that built the change, works through it from the top.
+
+````markdown
+# Review: JIRA-1234 (not yet a PR)
+
+Grade: Large · needs a human when the PR opens
+
+## Fix list
+1. [ ] **blocking** `src/Api/Profile/ProfileService.cs:57` — empty phone saved as `&quot;&quot;` (AC3)
+2. [ ] **blocking** `tests/Api.Tests/ProfilePhoneTests.cs` — add `RemovePhone` test for AC3, before fix 1
+3. [ ] **question** `src/Api/Profile/ProfileService.cs:72` — new cache write, not in the plan or the diagram
+4. [ ] **non-blocking** `src/Api/Profile/ProfileRequestValidator.cs:21` — use `PhoneNumber.IsE164()`
+5. [ ] **question** `src/Api/Program.cs:88` — rate limit per user or per session?
+
+## Diagram
+
+Plan vs code: 4 match, 1 missing (AC3), 1 new (API → Cache), 1 changed (200 OK body). Full table: `sequence-from-code.md`.
+
+## Comments by file
+
+### src/Api/Profile/ProfileService.cs:57
+**issue (blocking):** An empty phone number is saved as `&quot;&quot;`, not removed.
+AC3 says an empty field removes the phone number. …
+
+## Rejected findings
+- C4 &quot;N+1 query in ProfileService.Get&quot; — rejected: `Include(u =&gt; u.Addresses)` on line 31 loads it in one query.
+````
+
+<span class="h">## Bad → good</span>
+
+| Bad | Why it fails | Good |
+|---|---|---|
+| &quot;This is wrong.&quot; | No what, no why, no fix. | `issue (blocking):` + what + AC + fix |
+| &quot;Why did you do it like this??&quot; | About the person, sounds like blame, no question to answer. | `question:` + what you checked + the exact thing you don't know |
+| &quot;Maybe consider possibly refactoring this a bit?&quot; | No label, no reason, can't be acted on. | `suggestion (non-blocking):` + the helper that exists + the code |
+| &quot;LGTM 👍&quot; on a change with no AC3 test | Approves without evidence. | The summary comment with the evidence list |
+| 12 nitpicks and 1 blocker mixed together | The blocker gets lost. | Blocking first, nitpicks last or left out |</pre>
+      </div>
+    </section>
+    <section class="ex-file" id="f3">
+      <p class="ex-why">The command per stack, and the rules for dead code and duplication in .NET and PHP, where there is no Fallow.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/skills/review/references/checks.md</span><button class="ex-copy" type="button" data-target="c3">Click to Copy</button></div>
+        <pre id="c3"><span class="h"># Checks</span>
+
+Run only the stacks the change touches. Each command must finish in seconds. If one is slow, run it on the changed project or files only.
+
+<span class="h">## .NET (`src/`, `tests/`)</span>
+
+| Check | Command |
+|---|---|
+| Build with analyzers | `dotnet build src/Api --no-restore -warnaserror` |
+| One test | `dotnet test tests/Api.Tests --filter &quot;FullyQualifiedName~&lt;TestName&gt;&quot;` |
+| Property tests | `dotnet test tests/Api.Tests --filter Category=Properties` |
+
+<span class="h">## PHP (`backend/`)</span>
+
+| Check | Command |
+|---|---|
+| Static analysis | `vendor/bin/phpstan analyse --no-progress --error-format=raw &lt;changed files&gt;` |
+| One test | `vendor/bin/phpunit --filter &lt;TestName&gt;` |
+
+<span class="h">## Next.js (`web/`)</span>
+
+| Check | Command |
+|---|---|
+| Types | `npx tsc --noEmit -p web` |
+| Lint | `npx eslint &lt;changed files&gt;` |
+| Dead code, duplication | `npx fallow` (in `web/`) |
+| E2E main flow | `npx playwright test &lt;spec file&gt;` |
+
+<span class="h">## Quality gate</span>
+
+If the repo uses SonarCloud, read the quality gate result for the branch or PR (coverage on new code, duplication, complexity, security hotspots) from the SonarCloud project page or its API. A failed gate is a mechanical finding (`M`). It covers .NET, PHP and TypeScript with one gate.
+
+<span class="h">## By reading</span>
+
+For .NET and PHP there is no Fallow. Read the changed code for:
+
+- a new method or class nothing calls;
+- a block of 6+ lines that is the same as code that already exists (search for it);
+- a method longer than 40 lines, or nested more than 3 levels;
+- a new helper that does what an existing helper already does (search `Shared/`, `backend/src/Support/`).</pre>
+      </div>
+    </section>
+    <section class="ex-file" id="f4">
+      <p class="ex-why">Small, Medium, Large, Critical, with the paths that set each grade. The pre-grade decides if the third reviewer runs.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/skills/review/references/grading.md</span><button class="ex-copy" type="button" data-target="c4">Click to Copy</button></div>
+        <pre id="c4"><span class="h"># PR grade</span>
+
+`scripts/grade.mjs` sets the grade from the file list, with the rules in `grading.json`. The same files always get the same grade. Change the paths in `grading.json` to match your repo.
+
+| Grade | When | What happens |
+|---|---|---|
+| **Critical** | Any file matches `critical` (migrations, persistence, database, auth, payments, core domain) | Human gate, mandatory |
+| **Large** | More than 15 files, or more than one project, or a file matches `businessLogic` | Needs a human |
+| **Medium** | More than 5 files, no business logic | Machine review is enough |
+| **Small** | 5 files or fewer, no business logic | Auto-merge when all checks pass |
+
+The script grades only the file list. In step 6 of the review, raise the grade if the review found business logic, a data change or a security finding that the paths didn't show. Never lower it.
+
+Always one line with the reason: the rule and the file that set the grade.
+
+Test folders are not in `projects`, so a change to `src/` with its tests is still one project.</pre>
+      </div>
+    </section>
+    <section class="ex-file" id="f5">
+      <p class="ex-why">Compares the Files table in plan.md with the changed and new files, globs included. --markdown gives a PR comment. Tested.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/skills/review/scripts/drift-guard.mjs</span><button class="ex-copy" type="button" data-target="c5">Click to Copy</button></div>
+        <pre id="c5">#!/usr/bin/env node
+// Compares the Files table in plan.md with the files the change touched.
+// Usage: node drift-guard.mjs --plan plans/JIRA-1234/plan.md [--base origin/main] [--markdown]
+// Exit code 1 when a planned file is missing.
+import { execFileSync } from &quot;node:child_process&quot;;
+import { existsSync, readFileSync } from &quot;node:fs&quot;;
+import { matches } from &quot;./glob.mjs&quot;;
+
+const arg = (name, fallback) =&gt; {
+  const i = process.argv.indexOf(name);
+  return i &gt; -1 &amp;&amp; process.argv[i + 1] &amp;&amp; !process.argv[i + 1].startsWith(&quot;--&quot;) ? process.argv[i + 1] : fallback;
+};
+const planPath = arg(&quot;--plan&quot;);
+const base = arg(&quot;--base&quot;, &quot;origin/main&quot;);
+const markdown = process.argv.includes(&quot;--markdown&quot;); // for a PR comment
+if (!planPath || !existsSync(planPath)) {
+  console.error(&quot;Usage: drift-guard.mjs --plan plans/&lt;TICKET&gt;/plan.md [--base origin/main] [--markdown]&quot;);
+  process.exit(2);
+}
+
+// Only the table under &quot;## Files&quot;: | File | Change | What | AC |
+const lines = readFileSync(planPath, &quot;utf8&quot;).split(&quot;\n&quot;);
+const start = lines.findIndex((l) =&gt; l.trim().toLowerCase() === &quot;## files&quot;);
+const planned = [];
+for (const line of start &lt; 0 ? [] : lines.slice(start + 1)) {
+  if (line.startsWith(&quot;## &quot;)) break;
+  if (!line.trim().startsWith(&quot;|&quot;)) continue;
+  const cells = line.trim().replace(/^\||\|$/g, &quot;&quot;).split(&quot;|&quot;).map((c) =&gt; c.trim().replace(/^`([^`]*)`$/, &quot;$1&quot;));
+  const [file, change = &quot;&quot;, what = &quot;&quot;, ac = &quot;&quot;] = cells;
+  if (!file || /^:?-+:?$/.test(file) || file.toLowerCase() === &quot;file&quot;) continue;
+  planned.push({ file, change: change.toLowerCase(), what, ac });
+}
+
+const git = (...a) =&gt; execFileSync(&quot;git&quot;, a, { encoding: &quot;utf8&quot; }).split(&quot;\n&quot;).filter(Boolean);
+const changed = [...new Set([...git(&quot;diff&quot;, &quot;--name-only&quot;, base), ...git(&quot;ls-files&quot;, &quot;--others&quot;, &quot;--exclude-standard&quot;)])];
+const hit = (p, c) =&gt; (p.file.includes(&quot;*&quot;) ? matches(c, p.file) : c === p.file || c.endsWith(&quot;/&quot; + p.file));
+
+const done = planned.filter((p) =&gt; changed.some((c) =&gt; hit(p, c)));
+const missing = planned.filter((p) =&gt; !changed.some((c) =&gt; hit(p, c)));
+const unplanned = changed.filter((c) =&gt; !planned.some((p) =&gt; hit(p, c)) &amp;&amp; !c.startsWith(&quot;plans/&quot;));
+
+const out = [`✓ ${done.length} of ${planned.length} planned files changed`];
+for (const c of unplanned) out.push(`! ${c} changed, not in the plan`);
+for (const p of missing) out.push(`✗ ${p.file} missing (${p.change}, ${p.what}${p.ac ? `, ${p.ac}` : &quot;&quot;})`);
+
+console.log(markdown ? `### File drift\n\nPlan: \`${planPath}\`\n\n${out.map((l) =&gt; `- ${l}`).join(&quot;\n&quot;)}` : out.join(&quot;\n&quot;));
+process.exit(missing.length ? 1 : 0);</pre>
+      </div>
+    </section>
+    <section class="ex-file" id="f6">
+      <p class="ex-why">Grades the change from its file list with grading.json: Small, Medium, Large, Critical. Same files, same grade, every time. Tested.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/skills/review/scripts/grade.mjs</span><button class="ex-copy" type="button" data-target="c6">Click to Copy</button></div>
+        <pre id="c6">#!/usr/bin/env node
+// Grades a change from its file list with the rules in references/grading.json.
+// Usage: node grade.mjs [--base origin/main] [--json]
+// Prints the grade and the rule that set it. Same input, same grade, every time.
+import { execFileSync } from &quot;node:child_process&quot;;
+import { readFileSync } from &quot;node:fs&quot;;
+import { dirname, join } from &quot;node:path&quot;;
+import { fileURLToPath } from &quot;node:url&quot;;
+import { matches } from &quot;./glob.mjs&quot;;
+
+const here = dirname(fileURLToPath(import.meta.url));
+const rules = JSON.parse(readFileSync(join(here, &quot;..&quot;, &quot;references&quot;, &quot;grading.json&quot;), &quot;utf8&quot;));
+const i = process.argv.indexOf(&quot;--base&quot;);
+const base = i &gt; -1 ? process.argv[i + 1] : &quot;origin/main&quot;;
+
+const git = (...a) =&gt; execFileSync(&quot;git&quot;, a, { encoding: &quot;utf8&quot; }).split(&quot;\n&quot;).filter(Boolean);
+const files = [...new Set([...git(&quot;diff&quot;, &quot;--name-only&quot;, base), ...git(&quot;ls-files&quot;, &quot;--others&quot;, &quot;--exclude-standard&quot;)])]
+  .filter((f) =&gt; !f.startsWith(&quot;plans/&quot;));
+
+const hits = (globs) =&gt; files.filter((f) =&gt; globs.some((g) =&gt; matches(f, g)));
+const projects = new Set(files.map((f) =&gt; Object.keys(rules.projects).find((p) =&gt; matches(f, rules.projects[p]))).filter(Boolean));
+
+let grade, reason;
+const critical = hits(rules.critical);
+const logic = hits(rules.businessLogic);
+if (critical.length) [grade, reason] = [&quot;Critical&quot;, `touches ${critical[0]}`];
+else if (files.length &gt; rules.mediumMaxFiles) [grade, reason] = [&quot;Large&quot;, `${files.length} files (more than ${rules.mediumMaxFiles})`];
+else if (projects.size &gt; 1) [grade, reason] = [&quot;Large&quot;, `${projects.size} projects: ${[...projects].join(&quot;, &quot;)}`];
+else if (logic.length) [grade, reason] = [&quot;Large&quot;, `business logic in ${logic[0]}`];
+else if (files.length &gt; rules.smallMaxFiles) [grade, reason] = [&quot;Medium&quot;, `${files.length} files, no business logic`];
+else [grade, reason] = [&quot;Small&quot;, `${files.length} files, no business logic`];
+
+const action = rules.actions[grade];
+if (process.argv.includes(&quot;--json&quot;)) console.log(JSON.stringify({ grade, reason, action, files: files.length }));
+else console.log(`Grade: ${grade} (${reason})\nAction: ${action}`);</pre>
+      </div>
+    </section>
+    <section class="ex-file" id="f7">
+      <p class="ex-why">A small glob matcher shared by both scripts.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/skills/review/scripts/glob.mjs</span><button class="ex-copy" type="button" data-target="c7">Click to Copy</button></div>
+        <pre id="c7">// Tiny glob matcher: ** = any folders, * = anything but &quot;/&quot;.
+export function globToRegExp(glob) {
+  let re = &quot;&quot;;
+  for (let i = 0; i &lt; glob.length; i++) {
+    const c = glob[i];
+    if (c === &quot;*&quot; &amp;&amp; glob[i + 1] === &quot;*&quot;) {
+      re += glob[i + 2] === &quot;/&quot; ? &quot;(?:.*/)?&quot; : &quot;.*&quot;;
+      i += glob[i + 2] === &quot;/&quot; ? 2 : 1;
+    } else if (c === &quot;*&quot;) re += &quot;[^/]*&quot;;
+    else re += c.replace(/[.+?^${}()|[\]\\]/g, &quot;\\$&amp;&quot;);
+  }
+  return new RegExp(`^${re}$`);
+}
+export const matches = (file, glob) =&gt; globToRegExp(glob).test(file);</pre>
+      </div>
+    </section>
+    <section class="ex-file" id="f8">
+      <p class="ex-why">The paths and limits the grade script uses. Each team edits this file.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/skills/review/references/grading.json</span><button class="ex-copy" type="button" data-target="c8">Click to Copy</button></div>
+        <pre id="c8">{
+  &quot;smallMaxFiles&quot;: 5,
+  &quot;mediumMaxFiles&quot;: 15,
+  &quot;projects&quot;: {
+    &quot;api&quot;: &quot;src/**&quot;,
+    &quot;backend&quot;: &quot;backend/**&quot;,
+    &quot;web&quot;: &quot;web/**&quot;
+  },
+  &quot;critical&quot;: [
+    &quot;**/Migrations/**&quot;,
+    &quot;src/Infrastructure/Persistence/**&quot;,
+    &quot;backend/database/**&quot;,
+    &quot;**/Auth/**&quot;,
+    &quot;**/Payments/**&quot;,
+    &quot;src/Domain/**&quot;
+  ],
+  &quot;businessLogic&quot;: [
+    &quot;src/Api/**/*Service.cs&quot;,
+    &quot;backend/src/Domain/**&quot;
+  ],
+  &quot;actions&quot;: {
+    &quot;Small&quot;: &quot;auto-merge when all checks pass&quot;,
+    &quot;Medium&quot;: &quot;machine review is enough&quot;,
+    &quot;Large&quot;: &quot;needs a human&quot;,
+    &quot;Critical&quot;: &quot;human gate, mandatory&quot;
+  }
+}</pre>
+      </div>
+    </section>
+    <section class="ex-file" id="f9">
+      <p class="ex-why">Verifier: one passing test per AC with the AC's values, property tests, E2E, and approved tests changed afterwards. Runs tests, can't edit.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/agents/review-ac-verifier.md</span><button class="ex-copy" type="button" data-target="c9">Click to Copy</button></div>
+        <pre id="c9"><span class="fm">---</span>
+<span class="fm">name: review-ac-verifier</span>
+<span class="fm">description: Verifies that every acceptance criterion in a review packet has a real, passing test, and that approved tests were not changed. Used by the review skill.</span>
+<span class="fm">tools: Read, Grep, Glob, Bash</span>
+<span class="fm">disallowedTools: Edit, Write, NotebookEdit, Agent</span>
+<span class="fm">---</span>
+
+You verify tests against acceptance criteria (ACs). You never change files.
+
+Read the packet path you were given. Read `acs.md` and the test column of `plan.md`.
+
+For every AC:
+
+1. Find the test named in `plan.md`. Missing → finding.
+2. Read it. Does it use the same values as the AC (the same limit, text, status code)? If not → finding.
+3. Run only that test with the command in the packet, **3 times**. Failed → finding with the output. Passed some times and failed others → `blocking` finding: the test is flaky. A flaky test teaches the agent that retrying beats fixing, so it must be fixed or removed.
+
+Then:
+
+- Every &quot;must never&quot; rule has a property test that runs and passes.
+- The main flow has an E2E test. Run it with `--trace on` and copy the trace to `plans/&lt;TICKET&gt;/review/e2e-trace.zip` (the trace has a screencast of every step). If the Playwright config records video, copy the video too. Both go in the PR evidence.
+- **Deterministic tests.** In the new and changed tests, look for random values without a fixed seed (`new Random()`, `Math.random()`, `Faker` without a seed), the real clock (`DateTime.Now`, `DateTime.UtcNow`, `new Date()`, `time()`) instead of a fake one, and shared state between tests (static fields, one database for all tests). Each is a finding with the line.
+- Test gaming: find the commit that approved the plan (`git log --format=%h -n 1 -- &lt;plan.md&gt;`) and `git diff &lt;hash&gt; -- &lt;test files&gt;`. A changed assertion or a removed test → `blocking` finding with the changed lines.
+
+Run only the test commands in the packet and read-only git commands. Return findings in the format in the packet, with ids `V1`, `V2`, …</pre>
+      </div>
+    </section>
+    <section class="ex-file" id="f10">
+      <p class="ex-why">Verifier: redraws the sequence diagram from the code without looking at the plan, compares it arrow by arrow with sequence.md (match, missing, new, changed), cross-checks new arrows with the plan file table, and shows the main flow in the browser.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/agents/review-flow-verifier.md</span><button class="ex-copy" type="button" data-target="c10">Click to Copy</button></div>
+        <pre id="c10"><span class="fm">---</span>
+<span class="fm">name: review-flow-verifier</span>
+<span class="fm">description: Redraws the sequence diagram from the changed code, compares it arrow by arrow with the approved one in the plan, and shows the main flow running in the browser. Used by the review skill.</span>
+<span class="fm">tools: Read, Grep, Glob, Write, mcp__playwright__*</span>
+<span class="fm">disallowedTools: Edit, NotebookEdit, Bash, Agent</span>
+<span class="fm">---</span>
+
+You verify the flow. You never change code. The only files you write are in `plans/&lt;TICKET&gt;/review/`.
+
+Read the packet path you were given, then `sequence.md`, `acs.md` and the file table in `plan.md`.
+
+<span class="h">## 1. Redraw the diagram from the code</span>
+
+Don't look at `sequence.md` while you draw. Start at the entry point of the main flow (the page, the endpoint) and follow the changed code. Draw every actor, call, database write, cache write, message and error path, in the same Mermaid form as `sequence.md`. Next to each arrow, note the file and line it comes from.
+
+Save it as `plans/&lt;TICKET&gt;/review/sequence-from-code.md`.
+
+<span class="h">## 2. Compare arrow by arrow</span>
+
+Put both diagrams in one table and save it under the diagram in the same file:
+
+| Arrow | In plan | In code | AC | Result |
+|---|---|---|---|---|
+| Web → API: PUT /profile | ✓ | ✓ `ProfileForm.tsx:31` | | match |
+| API → Web: 400 not E.164 | ✓ | ✓ `ProfileController.cs:44` | AC1 | match |
+| API → Web: 429 | ✓ | ✓ `Program.cs:88` | AC2 | match |
+| API → DB: UPDATE Users SET Phone = NULL | ✓ | ✗ | AC3 | **missing** |
+| API → Cache: SET profile | ✗ | ✓ `ProfileService.cs:72` | | **new** |
+| API → Web: 200 OK | ✓ | ✓ but returns profile body | | **changed** |
+
+Results: `match`, `missing` (in the plan, not in the code), `new` (in the code, not in the plan), `changed` (both, but different call, status or data).
+
+<span class="h">## 3. Cross-check with the plan</span>
+
+- Every AC label in `sequence.md` has a matching arrow in the code. If not → `missing` finding with that AC.
+- For every `new` or `changed` arrow: is its file in the file table of `plan.md`? If not, say so in the finding. The lead matches it with the drift guard's &quot;not in the plan&quot; line.
+
+Every `missing`, `new` or `changed` row is one finding (`kind: logic`, or `missing`), with the file and line from the code, or the AC for a missing arrow. A missing arrow for an AC is `blocking`.
+
+<span class="h">## 4. Show it running</span>
+
+If the packet says the web app runs locally, use the Playwright MCP server to go through the main flow once. After each AC's result, take a screenshot and save it as `plans/&lt;TICKET&gt;/review/screenshots/&lt;AC&gt;.png`. A step that doesn't behave as the AC says is a finding, with the screenshot as evidence.
+
+Return findings in the format in the packet, with ids `F1`, `F2`, …, then the comparison table and the list of screenshots.</pre>
+      </div>
+    </section>
+    <section class="ex-file" id="f11">
+      <p class="ex-why">Reviewer: code level. Bugs, errors, security, performance, duplication, conventions. Read-only, no shell.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/agents/review-code.md</span><button class="ex-copy" type="button" data-target="c11">Click to Copy</button></div>
+        <pre id="c11"><span class="fm">---</span>
+<span class="fm">name: review-code</span>
+<span class="fm">description: Reviews changed code at code level - bugs, error handling, nulls, security, performance, dead code, duplication and team conventions. Used by the review skill.</span>
+<span class="fm">tools: Read, Grep, Glob</span>
+<span class="fm">disallowedTools: Edit, Write, NotebookEdit, Bash, Agent</span>
+<span class="fm">---</span>
+
+You review code at code level. You never change files. You work alone: you don't see other reviewers' findings.
+
+Read the packet path you were given, then the diff of each changed file and the code around it.
+
+Look for:
+
+- **Bugs:** wrong conditions, off-by-one, null or empty not handled, wrong types, async without await.
+- **Errors:** exceptions swallowed, errors returned as success, missing status codes.
+- **Security:** input not validated, missing auth check, SQL built from strings, secrets in code, data from one user shown to another.
+- **Performance:** a query in a loop (N+1), loading whole tables, missing index for a new query.
+- **Maintainability:** dead code, a new helper that copies an existing one (search for it), methods over 40 lines, nesting over 3 levels.
+- **Conventions:** the rules in `CLAUDE.md` and `.claude/rules/` for these paths.
+
+Don't review the business logic against the ACs. Another reviewer does that.
+
+Return findings in the format in the packet, with ids `C1`, `C2`, … Only what you can point to with a file, a line and evidence.</pre>
+      </div>
+    </section>
+    <section class="ex-file" id="f12">
+      <p class="ex-why">Reviewer: business logic against each AC. Missing, extra, edge cases, concurrency, must-never rules, data. Read-only, no shell.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/agents/review-logic.md</span><button class="ex-copy" type="button" data-target="c12">Click to Copy</button></div>
+        <pre id="c12"><span class="fm">---</span>
+<span class="fm">name: review-logic</span>
+<span class="fm">description: Reviews the business logic of a change against its acceptance criteria - missing or extra behavior, edge cases, concurrency, must-never rules and data consistency. Used by the review skill.</span>
+<span class="fm">tools: Read, Grep, Glob</span>
+<span class="fm">disallowedTools: Edit, Write, NotebookEdit, Bash, Agent</span>
+<span class="fm">---</span>
+
+You review business logic against the approved intent. You never change files. You work alone: you don't see other reviewers' findings.
+
+Read the packet path you were given, then `acs.md`, `sequence.md` and the changed code.
+
+For every AC, follow the code path that serves it:
+
+- **Missing:** a part of the AC that isn't built, or is built with other values.
+- **Extra:** behavior no AC asks for.
+- **Edge cases:** empty, null, max length, zero, negative, duplicates, time zones, the error cases the AC names.
+- **Concurrency:** two requests at once, a double click, a retry.
+- **&quot;Must never&quot; rules:** any path in the code that can break one.
+- **Data:** a write that can leave the data half done, a missing transaction.
+
+Don't review code style or performance. Another reviewer does that.
+
+Return findings in the format in the packet, with ids `L1`, `L2`, … Every finding names the AC it is about.</pre>
+      </div>
+    </section>
+    <section class="ex-file" id="f13">
+      <p class="ex-why">Third reviewer: doesn't read the plan or ACs on purpose, to catch what the planners all missed. Read-only, no shell.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/agents/review-fresh-eyes.md</span><button class="ex-copy" type="button" data-target="c13">Click to Copy</button></div>
+        <pre id="c13"><span class="fm">---</span>
+<span class="fm">name: review-fresh-eyes</span>
+<span class="fm">description: Reviews a change with no knowledge of its plan or acceptance criteria, to catch what reviewers who know the plan miss. Used by the review skill for large or critical changes.</span>
+<span class="fm">tools: Read, Grep, Glob</span>
+<span class="fm">disallowedTools: Edit, Write, NotebookEdit, Bash, Agent</span>
+<span class="fm">---</span>
+
+You review a change as someone who was not in the planning. You never change files. You work alone.
+
+Read the packet path you were given, but **don't read `acs.md`, `sequence.md` or `plan.md`**. Use only the ticket title, the changed files and the code around them.
+
+Ask:
+
+- What does this change do? Write it in two sentences first.
+- What would surprise a teammate who reads it for the first time?
+- What could break for users who don't use this feature?
+- What is hard to understand, and would be easy to get wrong in the next change?
+
+Return findings in the format in the packet, with ids `E1`, `E2`, … Start with your two-sentence description of the change, so the lead can compare it with the ticket.</pre>
+      </div>
+    </section>
+    </div>
+  </div>
+  <p class="ex-note">Paths and commands assume a repo with <code>src/Api</code> (.NET), <code>backend/</code> (PHP) and <code>web/</code> (Next.js). MCP server names are the names in the repo's <code>.mcp.json</code>. Each team changes them to match its own repo. The files are in <a href="https://github.com/wunderdogsw/ai-driven-development-day/tree/main/examples">examples/</a> in the repo.</p>
+</main>
+<script src="../../assets/examples.js"></script>
+</body>
+</html>

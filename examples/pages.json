@@ -1,0 +1,359 @@
+{
+  "title": "Example skills",
+  "pages": [
+    {
+      "slug": "add-ef-migration",
+      "title": "EF Migration Skill",
+      "kicker": "Example skill · general",
+      "lead": "A skill for one task the team repeats: adding a database migration in the .NET API. It shows what makes a skill reliable: exact commands, stop rules, a script for the mechanical check, worked examples and evals.",
+      "good": [
+        {
+          "title": "The description says what and when",
+          "text": "It uses the words people type: “add, change or remove a column, table, index”. Claude picks it without the skill name."
+        },
+        {
+          "title": "Only the tools it needs",
+          "text": "allowed-tools lists the exact dotnet ef commands and the check script. Nothing else runs without asking."
+        },
+        {
+          "title": "Exact commands, no “run the usual”",
+          "text": "Every step has the real command with the team's project flags. Claude can't guess these."
+        },
+        {
+          "title": "Clear stop rules",
+          "text": "Drop, rename and data fixes stop and go to a human. The skill says when not to use it."
+        },
+        {
+          "title": "Mechanical checks are a script",
+          "text": "Data-loss detection is a script with an exit code, so the result is the same every time."
+        },
+        {
+          "title": "Examples in a separate file",
+          "text": "references/examples.md loads only when needed, so the skill itself stays short."
+        },
+        {
+          "title": "MCP where it adds facts",
+          "text": "A read-only devdb MCP server counts the data a drop would lose and compares the real schema with the model. If it is not connected, the skill says so instead of guessing."
+        },
+        {
+          "title": "Tested with evals",
+          "text": "Two cases: one checks Claude picks the skill and uses the right command, one checks it stops before dropping a column."
+        }
+      ],
+      "files": [
+        {
+          "path": "skills/add-ef-migration/SKILL.md",
+          "why": "The skill. Short body: when to stop, the steps with real commands, what to do when something fails, and the report format. The hook on Migrations/ backs up the “never edit by hand” rule."
+        },
+        {
+          "path": "skills/add-ef-migration/references/examples.md",
+          "why": "Three worked requests: one that goes through, one that stops for a question, one that is not a migration. Claude reads this only when it needs an example."
+        },
+        {
+          "path": "skills/add-ef-migration/scripts/check-migration.sh",
+          "why": "Finds data loss in the new migration: dropped or renamed columns and tables, and columns that become required without a default. Exit code 1 stops the skill. Tested on a sample migration."
+        },
+        {
+          "path": "skills/add-ef-migration/evals/adds-optional-column/prompt.md",
+          "why": "Eval case 1: a normal request that doesn't name the skill."
+        },
+        {
+          "path": "skills/add-ef-migration/evals/adds-optional-column/graders/skill-used.md",
+          "why": "Did Claude pick the skill? Free to check, no model needed."
+        },
+        {
+          "path": "skills/add-ef-migration/evals/adds-optional-column/graders/right-command.md",
+          "why": "Did Claude use the team's naming and project flags? Only the skill knows them, so this shows what the skill adds."
+        },
+        {
+          "path": "skills/add-ef-migration/evals/stops-on-drop/prompt.md",
+          "why": "Eval case 2: a request that removes a column."
+        },
+        {
+          "path": "skills/add-ef-migration/evals/stops-on-drop/graders/asks-first.md",
+          "why": "A judge model checks that Claude asked before it generated a migration that loses data."
+        }
+      ]
+    },
+    {
+      "slug": "discover",
+      "title": "Discover Skill",
+      "kicker": "Example skill · Part 4",
+      "lead": "Turns a ticket into precise acceptance criteria and a sequence diagram. It only reads: it collects evidence, lists what is unclear, asks the human one question at a time, and writes plans/<ticket>/acs.md and sequence.md.",
+      "good": [
+        {
+          "title": "Read-only by design",
+          "text": "allowed-tools has only read commands. It never changes code, so it is safe to run on any ticket."
+        },
+        {
+          "title": "Only a human starts it",
+          "text": "disable-model-invocation: true. Discovery is a decision to start work on a ticket."
+        },
+        {
+          "title": "Evidence before questions",
+          "text": "It lists gaps, conflicts and “not checked” sources before it asks anything, so the human sees the size of the unknown."
+        },
+        {
+          "title": "Questions with evidence and options",
+          "text": "Each question quotes the source and gives 2–4 options. Answers are saved as decisions with a name."
+        },
+        {
+          "title": "A definition of precise",
+          "text": "The five rules are in the skill's reference. Every AC is checked against them before it is written."
+        },
+        {
+          "title": "Missing arrows are questions",
+          "text": "The sequence diagram is drawn during discovery, so gaps show up before any code exists."
+        },
+        {
+          "title": "Any tracker",
+          "text": "Jira, Linear, GitHub Issues, Azure Boards or GitLab: sources.md has a row for each, with the MCP server or CLI to use and what to pre-approve. The team keeps its own rows."
+        },
+        {
+          "title": "MCP where it fits, CLI where it is good",
+          "text": "Jira, Linear, Confluence, Notion, Azure DevOps threads, logs and Figma through MCP servers. GitHub, GitLab and git through their CLIs. Only read tools are pre-approved."
+        },
+        {
+          "title": "A full worked example",
+          "text": "examples.md shows the whole flow on one ticket: evidence, questions, bad and good ACs, and the two output files."
+        }
+      ],
+      "files": [
+        {
+          "path": "skills/discover/SKILL.md",
+          "why": "Eight steps from ticket to files, and a clear “done when”. Sources, rules and the example live in references, so the body stays short."
+        },
+        {
+          "path": "skills/discover/references/sources.md",
+          "why": "Where the evidence lives, the MCP tool or CLI command for each source, and why that one. This is the file each team changes to match its own servers and tools."
+        },
+        {
+          "path": "skills/discover/references/ac-format.md",
+          "why": "The five precision rules, “must never” rules and the templates for acs.md and sequence.md."
+        },
+        {
+          "path": "skills/discover/references/examples.md",
+          "why": "One ticket end to end: what was found, the questions and answers, bad → good ACs, and both output files."
+        }
+      ]
+    },
+    {
+      "slug": "plan",
+      "title": "Plan Skill",
+      "kicker": "Example skill · Part 4",
+      "lead": "Turns approved acceptance criteria into a build plan: every step serves an AC, every file is named, every AC has a test with the exact command that runs it. Runs in plan mode and ends by showing the ACs, the diagram and the plan together, with one question: Do you approve?",
+      "good": [
+        {
+          "title": "Plan mode",
+          "text": "Claude can't change anything while it plans. The only output is plan.md."
+        },
+        {
+          "title": "No plan without clear ACs",
+          "text": "It stops if acs.md has open questions or is missing."
+        },
+        {
+          "title": "Every step serves an AC",
+          "text": "A step without an AC is a question for the human, not a step."
+        },
+        {
+          "title": "Tests first, from the intent",
+          "text": "One test per AC, a property test per must-never rule, one E2E test, written before any code and failing first."
+        },
+        {
+          "title": "Exact test commands",
+          "text": "Each AC's test has the command that runs only that test. /implement's Stop hook runs these commands."
+        },
+        {
+          "title": "The file list is a drift guard",
+          "text": "Every file to change or create is in a table that /review's script compares with what changed."
+        },
+        {
+          "title": "The human approves all of the intent",
+          "text": "It shows the ACs, the sequence diagram and the plan together, then asks one question: Do you approve? Yes writes the plan. No means it asks what is wrong, one question at a time, and tries again."
+        }
+      ],
+      "files": [
+        {
+          "path": "skills/plan/SKILL.md",
+          "why": "Eight steps from ACs to plan. The last one asks for approval: yes writes plan.md, no starts the questions."
+        },
+        {
+          "path": "skills/plan/references/plan-format.md",
+          "why": "The exact headings and table columns. Scripts in /implement and /review read them, so the format is fixed."
+        },
+        {
+          "path": "skills/plan/references/example-plan.md",
+          "why": "The plan for JIRA-1234: steps with ACs, the tests table with commands, the files table, checks and risks."
+        }
+      ]
+    },
+    {
+      "slug": "implement",
+      "title": "Implement Skill",
+      "kicker": "Example skill · Parts 4–5",
+      "lead": "Builds a ticket from its approved plan in a fresh session: tests first, then code. Two hooks come with the skill: a lock that keeps the approved tests and plan unchanged, and a gate that only lets Claude finish when every AC test and check passes.",
+      "good": [
+        {
+          "title": "Hooks that come with the skill",
+          "text": "The hooks are in the skill's frontmatter. They turn on when /implement starts, so they don't get in the way of other work."
+        },
+        {
+          "title": "Tests from a separate agent",
+          "text": "The test-writer subagent writes the tests from acs.md only, without the plan's code steps. The tests and the code come from two agents, so they can't share one misreading."
+        },
+        {
+          "title": "Tests must fail first",
+          "text": "A test that passes before the code exists tests nothing. The human approves the failing tests before the build."
+        },
+        {
+          "title": "Approved tests are locked",
+          "text": "During the build, edits to the test files, acs.md, sequence.md and plan.md are blocked, through edit tools and shell commands. Fix the code, not the test."
+        },
+        {
+          "title": "Can only finish when green",
+          "text": "The Stop hook runs every test command and check from plan.md. If one fails, Claude keeps working."
+        },
+        {
+          "title": "No endless loop",
+          "text": "After 5 failed tries the gate lets Claude stop and tells the human. The lock stays on."
+        },
+        {
+          "title": "Logic check before finishing",
+          "text": "The review-logic subagent reads the code against each AC before the gate runs."
+        },
+        {
+          "title": "Only the planned files",
+          "text": "A file outside the plan means the plan was wrong, so Claude stops and asks."
+        }
+      ],
+      "files": [
+        {
+          "path": "skills/implement/SKILL.md",
+          "why": "The steps and the two hooks in the frontmatter. The marker file plans/.implementing tells the hooks which ticket and phase is active."
+        },
+        {
+          "path": "skills/implement/scripts/lock.mjs",
+          "why": "PreToolUse hook. In the build phase it blocks edits to the approved tests, the intent files and the marker, also through shell commands like sed -i or >. Tested."
+        },
+        {
+          "path": "skills/implement/scripts/ac-gate.mjs",
+          "why": "Stop hook. Runs the tests and checks from plan.md and checks the planned new files exist. All green: removes the marker. Red: exit 2 with the output. 5 tries: lets Claude stop and tells the human. Tested."
+        },
+        {
+          "path": "skills/implement/scripts/plan.mjs",
+          "why": "Reads the marker and the Tests, Files and Checks sections of plan.md for both hooks."
+        },
+        {
+          "path": "agents/test-writer.md",
+          "why": "The subagent that writes the tests from the ACs only, and shows they fail for the right reason. It doesn't read the plan's steps or the code that will change."
+        }
+      ]
+    },
+    {
+      "slug": "review",
+      "title": "Review Skill",
+      "kicker": "Example skill · Part 5",
+      "lead": "The review skill leads a team of independent subagents: two verify facts, two or three review the code and the logic. It cross-checks what they found, keeps what holds up, and writes review comments, on the PR or in a local file before there is a PR. It never edits code.",
+      "good": [
+        {
+          "title": "Machines first",
+          "text": "Static checks, file drift, docs and the grade run as commands, with the same result every time. Subagents only do what needs reading."
+        },
+        {
+          "title": "Flaky tests and a trace",
+          "text": "Each AC test runs 3 times; a test that passes only sometimes is blocking. The E2E test runs with a Playwright trace that goes in the PR evidence."
+        },
+        {
+          "title": "Other reviewers count too",
+          "text": "CodeRabbit, Greptile and SonarCloud comments on the PR join the cross-check as one more independent source."
+        },
+        {
+          "title": "Independent subagents",
+          "text": "Each subagent gets only the packet and its own task, never another one's findings. When two of them find the same thing alone, it means something."
+        },
+        {
+          "title": "Verify and review are separate",
+          "text": "Verifiers run tests and the app and report facts. Reviewers read code (review-code) and logic against the ACs (review-logic)."
+        },
+        {
+          "title": "The diagram is drawn twice",
+          "text": "The flow verifier redraws the sequence diagram from the code without looking at the plan, then compares arrow by arrow. A new arrow on a file the drift guard also flagged counts as found twice."
+        },
+        {
+          "title": "A third reviewer when it matters",
+          "text": "review-fresh-eyes reads without the plan, for Large or Critical changes or when the other two disagree."
+        },
+        {
+          "title": "Cross-check rules",
+          "text": "Found twice = confirmed. Found once = the lead checks it. Facts beat readings. Disagreement goes to the human. Rejected findings are listed with a reason."
+        },
+        {
+          "title": "Comments people can act on",
+          "text": "Conventional Comments labels, one problem per comment, why and evidence, a fix when there is one. Examples for PR comments and for a local review before the PR."
+        },
+        {
+          "title": "Asks before it posts",
+          "text": "Comments are written to a file first. Posting to the PR is a write, so the user approves it."
+        }
+      ],
+      "files": [
+        {
+          "path": "skills/review/SKILL.md",
+          "why": "The lead's steps: packet, mechanical checks, verification subagents, reviewer subagents, cross-check, grade, comments. Subagents start in one message so they run in parallel."
+        },
+        {
+          "path": "skills/review/references/findings.md",
+          "why": "The one format every subagent returns. Every finding has a place and evidence the lead can check, so findings from different subagents can be compared."
+        },
+        {
+          "path": "skills/review/references/comments.md",
+          "why": "How to write review comments: rules, PR examples (blocking, missing test, suggestion, question, nitpick, summary), the local review.md for work that is not a PR yet, and bad → good."
+        },
+        {
+          "path": "skills/review/references/checks.md",
+          "why": "The command per stack, and the rules for dead code and duplication in .NET and PHP, where there is no Fallow."
+        },
+        {
+          "path": "skills/review/references/grading.md",
+          "why": "Small, Medium, Large, Critical, with the paths that set each grade. The pre-grade decides if the third reviewer runs."
+        },
+        {
+          "path": "skills/review/scripts/drift-guard.mjs",
+          "why": "Compares the Files table in plan.md with the changed and new files, globs included. --markdown gives a PR comment. Tested."
+        },
+        {
+          "path": "skills/review/scripts/grade.mjs",
+          "why": "Grades the change from its file list with grading.json: Small, Medium, Large, Critical. Same files, same grade, every time. Tested."
+        },
+        {
+          "path": "skills/review/scripts/glob.mjs",
+          "why": "A small glob matcher shared by both scripts."
+        },
+        {
+          "path": "skills/review/references/grading.json",
+          "why": "The paths and limits the grade script uses. Each team edits this file."
+        },
+        {
+          "path": "agents/review-ac-verifier.md",
+          "why": "Verifier: one passing test per AC with the AC's values, property tests, E2E, and approved tests changed afterwards. Runs tests, can't edit."
+        },
+        {
+          "path": "agents/review-flow-verifier.md",
+          "why": "Verifier: redraws the sequence diagram from the code without looking at the plan, compares it arrow by arrow with sequence.md (match, missing, new, changed), cross-checks new arrows with the plan file table, and shows the main flow in the browser."
+        },
+        {
+          "path": "agents/review-code.md",
+          "why": "Reviewer: code level. Bugs, errors, security, performance, duplication, conventions. Read-only, no shell."
+        },
+        {
+          "path": "agents/review-logic.md",
+          "why": "Reviewer: business logic against each AC. Missing, extra, edge cases, concurrency, must-never rules, data. Read-only, no shell."
+        },
+        {
+          "path": "agents/review-fresh-eyes.md",
+          "why": "Third reviewer: doesn't read the plan or ACs on purpose, to catch what the planners all missed. Read-only, no shell."
+        }
+      ]
+    }
+  ]
+}

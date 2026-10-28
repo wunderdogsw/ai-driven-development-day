@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Implement Skill – Examples</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../assets/site.css">
+<link rel="stylesheet" href="../../assets/nav.css">
+<link rel="stylesheet" href="../../assets/examples.css">
+</head>
+<body class="ex">
+<nav class="site-nav" aria-label="Training pages">
+  <div class="inner">
+    <a class="brand" href="../../" aria-label="Home"><span class="wd-logo" role="img" aria-label="Wunderdog"></span></a>
+    <ul>
+      <li><a class="link icon-link" href="../../slides/" aria-label="Slides" title="Slides"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/></svg></a></li>
+      <li><a class="link icon-link" href="../../examples/" aria-label="Example skills" title="Example skills" aria-current="page"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></svg></a></li>
+      <li><a class="link icon-link" href="../../slides/ai-native-development.pdf" download aria-label="Download the slides with speaker notes (PDF)" title="Download the slides with speaker notes (PDF)"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg></a></li>
+      <li><a class="link icon-link" href="https://github.com/wunderdogsw/ai-driven-development-day" aria-label="GitHub repository" title="GitHub repository"><svg class="icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg></a></li>
+    </ul>
+  </div>
+</nav>
+<main class="ex-wrap">
+  <header class="ex-head">
+    <a class="ex-back" href="../">← All examples</a>
+    <div class="ex-kicker">Example skill · Parts 4–5</div>
+    <h1><code>/implement</code></h1>
+    <p class="ex-lead">Builds a ticket from its approved plan in a fresh session: tests first, then code. Two hooks come with the skill: a lock that keeps the approved tests and plan unchanged, and a gate that only lets Claude finish when every AC test and check passes.</p>
+  </header>
+  <section class="ex-good"><h2>What makes it good</h2><ul>
+      <li><b>Hooks that come with the skill</b><span>The hooks are in the skill's frontmatter. They turn on when /implement starts, so they don't get in the way of other work.</span></li>
+      <li><b>Tests from a separate agent</b><span>The test-writer subagent writes the tests from acs.md only, without the plan's code steps. The tests and the code come from two agents, so they can't share one misreading.</span></li>
+      <li><b>Tests must fail first</b><span>A test that passes before the code exists tests nothing. The human approves the failing tests before the build.</span></li>
+      <li><b>Approved tests are locked</b><span>During the build, edits to the test files, acs.md, sequence.md and plan.md are blocked, through edit tools and shell commands. Fix the code, not the test.</span></li>
+      <li><b>Can only finish when green</b><span>The Stop hook runs every test command and check from plan.md. If one fails, Claude keeps working.</span></li>
+      <li><b>No endless loop</b><span>After 5 failed tries the gate lets Claude stop and tells the human. The lock stays on.</span></li>
+      <li><b>Logic check before finishing</b><span>The review-logic subagent reads the code against each AC before the gate runs.</span></li>
+      <li><b>Only the planned files</b><span>A file outside the plan means the plan was wrong, so Claude stops and asks.</span></li>
+  </ul></section>
+  <div class="ex-layout">
+    <nav class="ex-tree" aria-label="Files">
+      <div class="root">.claude/</div>
+      <a href="#f0">skills/implement/SKILL.md</a>
+      <a href="#f1">skills/implement/scripts/lock.mjs</a>
+      <a href="#f2">skills/implement/scripts/ac-gate.mjs</a>
+      <a href="#f3">skills/implement/scripts/plan.mjs</a>
+      <a href="#f4">agents/test-writer.md</a>
+    </nav>
+    <div class="ex-files">
+    <section class="ex-file" id="f0">
+      <p class="ex-why">The steps and the two hooks in the frontmatter. The marker file plans/.implementing tells the hooks which ticket and phase is active.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/skills/implement/SKILL.md</span><button class="ex-copy" type="button" data-target="c0">Click to Copy</button></div>
+        <pre id="c0"><span class="fm">---</span>
+<span class="fm">name: implement</span>
+<span class="fm">description: Build a ticket from its approved plan in plans/&lt;ticket&gt;/. Tests first, then code, and Claude can only finish when every AC test and check passes. Use in a fresh session after /plan, for example &quot;/implement JIRA-1234&quot;.</span>
+<span class="fm">argument-hint: &lt;ticket id&gt;</span>
+<span class="fm">disable-model-invocation: true</span>
+<span class="fm">hooks:</span>
+<span class="fm">  PreToolUse:</span>
+<span class="fm">    - matcher: &quot;Edit|Write|MultiEdit|NotebookEdit|Bash&quot;</span>
+<span class="fm">      hooks:</span>
+<span class="fm">        - type: command</span>
+<span class="fm">          command: node &quot;${CLAUDE_PROJECT_DIR}/.claude/skills/implement/scripts/lock.mjs&quot;</span>
+<span class="fm">  Stop:</span>
+<span class="fm">    - hooks:</span>
+<span class="fm">        - type: command</span>
+<span class="fm">          command: node &quot;${CLAUDE_PROJECT_DIR}/.claude/skills/implement/scripts/ac-gate.mjs&quot;</span>
+<span class="fm">          timeout: 600</span>
+<span class="fm">---</span>
+
+<span class="h"># Implement: approved plan → working code</span>
+
+You build exactly what `plans/&lt;TICKET&gt;/plan.md` says. A separate subagent writes the tests first, from the ACs only. Two hooks come with this skill and stay on for the rest of the session:
+
+- **Lock** (before every edit): during the build, the approved test files, `acs.md`, `sequence.md` and `plan.md` can't be changed.
+- **AC gate** (when you try to finish): runs every test command and check in the plan. If one fails, you keep working.
+
+Ticket: $ARGUMENTS
+
+<span class="h">## 1. Check the plan</span>
+
+Read `plans/&lt;TICKET&gt;/acs.md`, `sequence.md` and `plan.md`.
+
+Stop if `plan.md` is missing, has no `Status: approved` line, or has no Tests table: &quot;There is no approved plan. Run /plan &lt;TICKET&gt; first.&quot;
+
+Write `plans/.implementing`:
+
+```json
+{ &quot;ticket&quot;: &quot;&lt;TICKET&gt;&quot;, &quot;phase&quot;: &quot;tests&quot; }
+```
+
+<span class="h">## 2. Tests from the intent (phase: tests)</span>
+
+Start the `test-writer` subagent with the ticket id. It writes every test in the Tests table from `acs.md` only, before any code, and runs them. **You don't write or change tests yourself.** The tests and the code come from two different agents, so they can't share one misreading of the plan.
+
+Check what it returns: every test exists, uses the AC's values, and **fails for the right reason** (the behavior is missing, not a typo or a build error). If not, send it back with what is wrong.
+
+Show the user the tests and the failing output, then ask:
+
+&gt; These are the tests for AC1–AC3 and the &quot;must never&quot; rule, written from the ACs only. They fail because the feature doesn't exist yet. Approve them? After this they are locked.
+
+Only on yes, change `plans/.implementing` to `&quot;phase&quot;: &quot;build&quot;`. From now on the lock hook blocks every edit to these tests. On no, ask what is wrong and send it back to `test-writer`.
+
+<span class="h">## 3. Build (phase: build)</span>
+
+Follow the steps in `plan.md` in order. After each step:
+
+- run the test commands for that step's AC;
+- use the skills the plan names (for example `add-ef-migration`).
+
+Change only the files in the Files table. If you must change another file, stop and ask: the plan was wrong, and a human should decide.
+
+If a test fails, fix the code, not the test. The lock blocks test edits; don't try to get around it. If you believe a test is wrong, stop and explain why to the user.
+
+<span class="h">## 4. Check against the ACs</span>
+
+Before you finish, start the `review-logic` subagent with the ticket. It reads the code against each AC: missing, extra, edge cases. Fix every blocking finding.
+
+<span class="h">## 5. Finish</span>
+
+When you stop, the AC gate runs every command in the Tests table and the Checks list.
+
+- **All pass** → the gate removes `plans/.implementing`, and the hooks stop doing anything.
+- **Something fails** → the gate sends you back with the output. Fix it.
+- **Fails 5 times in a row** → the gate lets you stop and tells the user. Write what blocks you.
+
+Then report:
+
+```
+JIRA-1234 built.
+Tests: 5 of 5 pass (AC1, AC2, AC3, must never, E2E)
+Checks: 3 of 3 pass
+Files: 11 of 11 from the plan, no others
+Next: run /review JIRA-1234
+```
+
+Nothing is committed. The human reviews and commits.</pre>
+      </div>
+    </section>
+    <section class="ex-file" id="f1">
+      <p class="ex-why">PreToolUse hook. In the build phase it blocks edits to the approved tests, the intent files and the marker, also through shell commands like sed -i or &gt;. Tested.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/skills/implement/scripts/lock.mjs</span><button class="ex-copy" type="button" data-target="c1">Click to Copy</button></div>
+        <pre id="c1">#!/usr/bin/env node
+// PreToolUse hook: during the build phase of /implement, block edits to the
+// approved test files, the intent files and the marker itself. Exit 2 blocks.
+import { relative, resolve } from &quot;node:path&quot;;
+import { readMarker, readPlan, root } from &quot;./plan.mjs&quot;;
+
+let raw = &quot;&quot;;
+for await (const chunk of process.stdin) raw += chunk;
+let input = {};
+try { input = JSON.parse(raw || &quot;{}&quot;); } catch {}
+
+const marker = readMarker();
+if (!marker || marker.phase !== &quot;build&quot;) process.exit(0);
+
+const plan = readPlan(marker.ticket);
+const locked = new Set([
+  &quot;plans/.implementing&quot;,
+  `plans/${marker.ticket}/acs.md`,
+  `plans/${marker.ticket}/sequence.md`,
+  `plans/${marker.ticket}/plan.md`,
+  ...(plan?.tests ?? []).map((t) =&gt; t.file),
+]);
+
+const block = (what) =&gt; {
+  process.stderr.write(
+    `Locked by /implement: ${what} was approved before the build started. ` +
+      `Fix the code, not the test or the plan. If you think it is wrong, stop and explain why to the user.\n`,
+  );
+  process.exit(2);
+};
+
+// Edit / Write: check the file path.
+const target = input.tool_input?.file_path ?? input.tool_input?.notebook_path;
+if (typeof target === &quot;string&quot;) {
+  const rel = relative(root, resolve(root, target)).split(&quot;\\&quot;).join(&quot;/&quot;);
+  if (locked.has(rel)) block(rel);
+}
+
+// Bash: block shell commands that write to a locked file (sed -i, &gt;, tee, mv, cp, rm, git checkout/restore).
+const command = input.tool_input?.command;
+if (typeof command === &quot;string&quot;) {
+  const writes = /(sed\s+-i|&gt;&gt;?|\btee\b|\bmv\b|\bcp\b|\brm\b|git\s+(checkout|restore|stash))/;
+  for (const f of locked) if (command.includes(f) &amp;&amp; writes.test(command)) block(f);
+}
+process.exit(0);</pre>
+      </div>
+    </section>
+    <section class="ex-file" id="f2">
+      <p class="ex-why">Stop hook. Runs the tests and checks from plan.md and checks the planned new files exist. All green: removes the marker. Red: exit 2 with the output. 5 tries: lets Claude stop and tells the human. Tested.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/skills/implement/scripts/ac-gate.mjs</span><button class="ex-copy" type="button" data-target="c2">Click to Copy</button></div>
+        <pre id="c2">#!/usr/bin/env node
+// Stop hook: Claude can only finish /implement when every test command and
+// check in plan.md passes. Exit 2 sends Claude back to work with the output.
+import { execSync } from &quot;node:child_process&quot;;
+import { existsSync, readFileSync, rmSync, writeFileSync } from &quot;node:fs&quot;;
+import { join } from &quot;node:path&quot;;
+import { markerPath, readMarker, readPlan, root } from &quot;./plan.mjs&quot;;
+
+const MAX_ATTEMPTS = 5;
+
+const marker = readMarker();
+if (!marker || marker.phase !== &quot;build&quot;) process.exit(0); // not building: nothing to gate
+
+const plan = readPlan(marker.ticket);
+if (!plan) {
+  process.stderr.write(`AC gate: plans/${marker.ticket}/plan.md is missing.\n`);
+  process.exit(2);
+}
+
+const runs = [
+  ...plan.tests.map((t) =&gt; ({ label: `${t.ac} ${t.name}`, command: t.command })),
+  ...plan.checks.map((c) =&gt; ({ label: &quot;check&quot;, command: c })),
+];
+
+const failed = [];
+for (const r of runs) {
+  try {
+    execSync(r.command, { cwd: root, stdio: &quot;pipe&quot;, timeout: 300_000 });
+  } catch (e) {
+    const out = `${e.stdout ?? &quot;&quot;}${e.stderr ?? &quot;&quot;}`.trim().split(&quot;\n&quot;).slice(-15).join(&quot;\n&quot;);
+    failed.push(`✗ ${r.label}: ${r.command}\n${out}`);
+  }
+}
+const missing = plan.files
+  .filter((f) =&gt; f.change === &quot;new&quot; &amp;&amp; !f.file.includes(&quot;*&quot;) &amp;&amp; !existsSync(join(root, f.file)))
+  .map((f) =&gt; `✗ planned new file missing: ${f.file}`);
+
+const attemptsFile = join(root, &quot;plans&quot;, marker.ticket, &quot;.gate-attempts&quot;);
+
+if (failed.length === 0 &amp;&amp; missing.length === 0) {
+  rmSync(markerPath, { force: true });
+  rmSync(attemptsFile, { force: true });
+  process.exit(0); // all green: Claude may finish, hooks go quiet
+}
+
+const attempts = (existsSync(attemptsFile) ? Number(readFileSync(attemptsFile, &quot;utf8&quot;)) || 0 : 0) + 1;
+writeFileSync(attemptsFile, String(attempts));
+
+const summary = [...missing, ...failed].join(&quot;\n\n&quot;);
+if (attempts &gt;= MAX_ATTEMPTS) {
+  // Let Claude stop, and tell the human. The marker stays, so the lock stays on.
+  process.stdout.write(JSON.stringify({
+    systemMessage: `AC gate: still failing after ${attempts} tries. A human needs to look.\n\n${summary}`,
+  }));
+  process.exit(0);
+}
+
+process.stderr.write(
+  `AC gate (try ${attempts} of ${MAX_ATTEMPTS}): you can't finish yet. ` +
+    `${failed.length + missing.length} of ${runs.length + missing.length} items fail. Fix the code, not the tests.\n\n${summary}\n`,
+);
+process.exit(2);</pre>
+      </div>
+    </section>
+    <section class="ex-file" id="f3">
+      <p class="ex-why">Reads the marker and the Tests, Files and Checks sections of plan.md for both hooks.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/skills/implement/scripts/plan.mjs</span><button class="ex-copy" type="button" data-target="c3">Click to Copy</button></div>
+        <pre id="c3">// Shared helpers: read plans/.implementing and the tables in plan.md.
+import { existsSync, readFileSync } from &quot;node:fs&quot;;
+import { join } from &quot;node:path&quot;;
+
+export const root = process.env.CLAUDE_PROJECT_DIR || process.cwd();
+export const markerPath = join(root, &quot;plans&quot;, &quot;.implementing&quot;);
+
+export function readMarker() {
+  if (!existsSync(markerPath)) return null;
+  try {
+    return JSON.parse(readFileSync(markerPath, &quot;utf8&quot;));
+  } catch {
+    return null;
+  }
+}
+
+const strip = (c) =&gt; c.trim().replace(/^`([^`]*)`$/, &quot;$1&quot;).trim();
+
+/** Rows of the markdown table under &quot;## &lt;heading&gt;&quot;, as arrays of cells. */
+export function table(md, heading) {
+  const lines = md.split(&quot;\n&quot;);
+  const start = lines.findIndex((l) =&gt; l.trim().toLowerCase() === `## ${heading}`.toLowerCase());
+  if (start &lt; 0) return [];
+  const rows = [];
+  for (const line of lines.slice(start + 1)) {
+    if (line.startsWith(&quot;## &quot;)) break;
+    if (!line.trim().startsWith(&quot;|&quot;)) continue;
+    const cells = line.trim().replace(/^\||\|$/g, &quot;&quot;).split(&quot;|&quot;).map(strip);
+    if (cells.every((c) =&gt; /^:?-+:?$/.test(c))) continue;
+    rows.push(cells);
+  }
+  return rows.slice(1); // drop the header row
+}
+
+/** Bullet items under &quot;## &lt;heading&gt;&quot;, without backticks. */
+export function bullets(md, heading) {
+  const lines = md.split(&quot;\n&quot;);
+  const start = lines.findIndex((l) =&gt; l.trim().toLowerCase() === `## ${heading}`.toLowerCase());
+  if (start &lt; 0) return [];
+  const out = [];
+  for (const line of lines.slice(start + 1)) {
+    if (line.startsWith(&quot;## &quot;)) break;
+    const m = /^\s*-\s+(.*)$/.exec(line);
+    if (m) out.push(strip(m[1]));
+  }
+  return out;
+}
+
+export function readPlan(ticket) {
+  const p = join(root, &quot;plans&quot;, ticket, &quot;plan.md&quot;);
+  if (!existsSync(p)) return null;
+  const md = readFileSync(p, &quot;utf8&quot;);
+  return {
+    md,
+    approved: /^Status:\s*approved/im.test(md),
+    tests: table(md, &quot;Tests&quot;).map(([ac, name, file, command]) =&gt; ({ ac, name, file, command })),
+    files: table(md, &quot;Files&quot;).map(([file, change, what, ac]) =&gt; ({ file, change, what, ac })),
+    checks: bullets(md, &quot;Checks&quot;),
+  };
+}</pre>
+      </div>
+    </section>
+    <section class="ex-file" id="f4">
+      <p class="ex-why">The subagent that writes the tests from the ACs only, and shows they fail for the right reason. It doesn't read the plan's steps or the code that will change.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/agents/test-writer.md</span><button class="ex-copy" type="button" data-target="c4">Click to Copy</button></div>
+        <pre id="c4"><span class="fm">---</span>
+<span class="fm">name: test-writer</span>
+<span class="fm">description: Writes the tests for a ticket from its approved acceptance criteria only, before any code exists, and shows that they fail. Used by the implement skill.</span>
+<span class="fm">tools: Read, Grep, Glob, Write, Edit, Bash</span>
+<span class="fm">disallowedTools: Agent</span>
+<span class="fm">---</span>
+
+You write tests from the intent, not from a plan for the code. Another agent writes the code later. If you both worked from the same reading of the plan, the tests and the code would share the same mistake and both would pass.
+
+You get a ticket id. Read only:
+
+- `plans/&lt;TICKET&gt;/acs.md`: the ACs, &quot;must never&quot; rules and out of scope.
+- `plans/&lt;TICKET&gt;/sequence.md`: the calls and error paths the user sees.
+- The **Tests** table in `plans/&lt;TICKET&gt;/plan.md`: test names, files and commands.
+- Existing tests near those files, to follow the team's test style, helpers and fakes.
+- The public surface the tests call (endpoints, page routes, public methods), only to know how to call it.
+
+Don't read the Steps or Files sections of `plan.md`, and don't read the code that will change. Test the behavior in the AC, not an implementation.
+
+For each row in the Tests table:
+
+1. Write the test with the exact name and in the exact file from the table.
+2. Use the AC's exact values: the same limit, text and status code.
+3. &quot;Must never&quot; rows: a property test that makes up many inputs and checks the rule always holds.
+4. E2E row: the main flow, as a user does it.
+5. Fixed seeds, a fake clock, no shared state between tests.
+
+Then run each test command. Every test must fail, and fail because the behavior is missing, not because of a typo, a missing import or a build error. Fix a test that fails for the wrong reason. A test that passes already tests nothing: fix it.
+
+Return, for each test: the AC, the test name and file, and the last lines of its failing output. Write only test files.</pre>
+      </div>
+    </section>
+    </div>
+  </div>
+  <p class="ex-note">Paths and commands assume a repo with <code>src/Api</code> (.NET), <code>backend/</code> (PHP) and <code>web/</code> (Next.js). MCP server names are the names in the repo's <code>.mcp.json</code>. Each team changes them to match its own repo. The files are in <a href="https://github.com/wunderdogsw/ai-driven-development-day/tree/main/examples">examples/</a> in the repo.</p>
+</main>
+<script src="../../assets/examples.js"></script>
+</body>
+</html>

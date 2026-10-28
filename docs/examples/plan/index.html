@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Plan Skill – Examples</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../../assets/site.css">
+<link rel="stylesheet" href="../../assets/nav.css">
+<link rel="stylesheet" href="../../assets/examples.css">
+</head>
+<body class="ex">
+<nav class="site-nav" aria-label="Training pages">
+  <div class="inner">
+    <a class="brand" href="../../" aria-label="Home"><span class="wd-logo" role="img" aria-label="Wunderdog"></span></a>
+    <ul>
+      <li><a class="link icon-link" href="../../slides/" aria-label="Slides" title="Slides"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/></svg></a></li>
+      <li><a class="link icon-link" href="../../examples/" aria-label="Example skills" title="Example skills" aria-current="page"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/></svg></a></li>
+      <li><a class="link icon-link" href="../../slides/ai-native-development.pdf" download aria-label="Download the slides with speaker notes (PDF)" title="Download the slides with speaker notes (PDF)"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg></a></li>
+      <li><a class="link icon-link" href="https://github.com/wunderdogsw/ai-driven-development-day" aria-label="GitHub repository" title="GitHub repository"><svg class="icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg></a></li>
+    </ul>
+  </div>
+</nav>
+<main class="ex-wrap">
+  <header class="ex-head">
+    <a class="ex-back" href="../">← All examples</a>
+    <div class="ex-kicker">Example skill · Part 4</div>
+    <h1><code>/plan</code></h1>
+    <p class="ex-lead">Turns approved acceptance criteria into a build plan: every step serves an AC, every file is named, every AC has a test with the exact command that runs it. Runs in plan mode and ends by showing the ACs, the diagram and the plan together, with one question: Do you approve?</p>
+  </header>
+  <section class="ex-good"><h2>What makes it good</h2><ul>
+      <li><b>Plan mode</b><span>Claude can't change anything while it plans. The only output is plan.md.</span></li>
+      <li><b>No plan without clear ACs</b><span>It stops if acs.md has open questions or is missing.</span></li>
+      <li><b>Every step serves an AC</b><span>A step without an AC is a question for the human, not a step.</span></li>
+      <li><b>Tests first, from the intent</b><span>One test per AC, a property test per must-never rule, one E2E test, written before any code and failing first.</span></li>
+      <li><b>Exact test commands</b><span>Each AC's test has the command that runs only that test. /implement's Stop hook runs these commands.</span></li>
+      <li><b>The file list is a drift guard</b><span>Every file to change or create is in a table that /review's script compares with what changed.</span></li>
+      <li><b>The human approves all of the intent</b><span>It shows the ACs, the sequence diagram and the plan together, then asks one question: Do you approve? Yes writes the plan. No means it asks what is wrong, one question at a time, and tries again.</span></li>
+  </ul></section>
+  <div class="ex-layout">
+    <nav class="ex-tree" aria-label="Files">
+      <div class="root">.claude/</div>
+      <a href="#f0">skills/plan/SKILL.md</a>
+      <a href="#f1">skills/plan/references/plan-format.md</a>
+      <a href="#f2">skills/plan/references/example-plan.md</a>
+    </nav>
+    <div class="ex-files">
+    <section class="ex-file" id="f0">
+      <p class="ex-why">Eight steps from ACs to plan. The last one asks for approval: yes writes plan.md, no starts the questions.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/skills/plan/SKILL.md</span><button class="ex-copy" type="button" data-target="c0">Click to Copy</button></div>
+        <pre id="c0"><span class="fm">---</span>
+<span class="fm">name: plan</span>
+<span class="fm">description: Turn the approved acceptance criteria in plans/&lt;ticket&gt;/ into a build plan where every step serves an AC, every file is named and every AC has a test. Use after /discover, in plan mode, for example &quot;/plan JIRA-1234&quot;.</span>
+<span class="fm">argument-hint: &lt;ticket id&gt;</span>
+<span class="fm">disable-model-invocation: true</span>
+<span class="fm">allowed-tools: Read Grep Glob Bash(git log *) Bash(git ls-files *)</span>
+<span class="fm">---</span>
+
+<span class="h"># Plan: ACs → build plan</span>
+
+Run this in plan mode (`claude --permission-mode plan`), so nothing changes until the human approves. You write one file, after the approval: `plans/&lt;TICKET&gt;/plan.md`. The format is in [references/plan-format.md](references/plan-format.md), and a full example is in [references/example-plan.md](references/example-plan.md).
+
+Ticket: $ARGUMENTS
+
+<span class="h">## 1. Read the intent</span>
+
+Read `plans/&lt;TICKET&gt;/acs.md` and `plans/&lt;TICKET&gt;/sequence.md`.
+
+Stop if:
+
+- either file is missing → &quot;Run /discover &lt;TICKET&gt; first.&quot;
+- `acs.md` has open questions → list them and stop. No plan without clear ACs.
+
+<span class="h">## 2. Read the code</span>
+
+For every arrow in `sequence.md`, find the code that does it today, or where new code must go. Follow the team's patterns: find a similar feature and plan the same shape. Note every file you will change or create.
+
+<span class="h">## 3. Steps</span>
+
+Numbered steps, small enough to check one by one. Each step ends with the AC it serves: `→ AC1`. A step that serves no AC is a question for the human, not a step.
+
+<span class="h">## 4. Tests first</span>
+
+Tests come from the ACs, not from the code. They are written before any code, and they must fail first.
+
+- One test per AC, with the AC's exact values.
+- One property test per &quot;must never&quot; rule.
+- One E2E test for the main flow.
+
+Each test gets a row in the Tests table with the **exact command** that runs only that test. `/implement` and its Stop hook run these commands, so they must work as written.
+
+<span class="h">## 5. Files</span>
+
+Every file you will change or create gets a row in the Files table: file, `edit` or `new`, what changes, which AC. Test files too. The drift guard in `/review` compares this table with what really changed.
+
+<span class="h">## 6. Checks</span>
+
+The static check commands for the stacks this plan touches, from the repo's CI. `/implement` runs them before it can finish.
+
+<span class="h">## 7. Risks</span>
+
+What could go wrong, in one line each: a migration, a shared component, a public API change, a feature flag. Each risk names the step it belongs to.
+
+<span class="h">## 8. Ask for approval</span>
+
+This is where the human checks the intent: fixing it here takes minutes, fixing it in a PR takes days. Show all three together, in this order:
+
+1. **The ACs** from `acs.md`: every AC, the &quot;must never&quot; rules and out of scope.
+2. **The sequence diagram** from `sequence.md`.
+3. **The plan**: steps, tests, files, checks and risks.
+
+Then ask one question:
+
+&gt; Do you approve the ACs, the diagram and this plan? (Yes / No)
+
+In plan mode this is the plan approval prompt.
+
+- **Yes** → write `plans/&lt;TICKET&gt;/plan.md` with `Status: approved (&lt;date&gt;)`, and say: &quot;Start a fresh session and run /implement &lt;TICKET&gt;.&quot;
+- **No** → ask what is wrong or missing, one question at a time, until it is clear. Change the plan, show all three again, and ask again. If the answer changes an AC or the diagram, stop: run /discover again so `acs.md` and `sequence.md` change first.
+
+Write nothing before the yes.</pre>
+      </div>
+    </section>
+    <section class="ex-file" id="f1">
+      <p class="ex-why">The exact headings and table columns. Scripts in /implement and /review read them, so the format is fixed.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/skills/plan/references/plan-format.md</span><button class="ex-copy" type="button" data-target="c1">Click to Copy</button></div>
+        <pre id="c1"><span class="h"># plan.md format</span>
+
+`/implement`, its hooks and `/review` read this file with scripts. Keep the headings and table columns exactly as shown.
+
+````markdown
+# &lt;TICKET&gt;: &lt;title&gt; — plan
+
+Status: approved (&lt;date&gt;)
+
+## Steps
+1. &lt;what&gt; in `&lt;file&gt;` → AC1
+2. …
+
+## Tests
+| AC | Test | File | Command |
+|---|---|---|---|
+| AC1 | &lt;TestName&gt; | `&lt;path&gt;` | `&lt;command that runs only this test&gt;` |
+| Must never | &lt;PropertyTestName&gt; | `&lt;path&gt;` | `&lt;command&gt;` |
+| E2E | &lt;spec name&gt; | `&lt;path&gt;` | `&lt;command&gt;` |
+
+## Files
+| File | Change | What | AC |
+|---|---|---|---|
+| `&lt;path&gt;` | edit | &lt;what changes&gt; | AC1 |
+| `&lt;path&gt;` | new | &lt;what&gt; | AC1, AC2 |
+
+## Checks
+- `&lt;static check command&gt;`
+
+## Risks
+- &lt;risk&gt; (step 3)
+````
+
+<span class="h">## Rules</span>
+
+- **Status** is written by `/plan` when the human answers yes to &quot;Do you approve this plan?&quot;. The file only exists after that. `/implement` refuses a plan without it.
+- **Tests** has one row per AC, one per &quot;must never&quot; rule, and one E2E row. The command runs only that test, in seconds.
+- **Files** lists every file that will change or be created, test files included.
+- **Checks** are commands that finish in seconds. Slow checks belong in CI.</pre>
+      </div>
+    </section>
+    <section class="ex-file" id="f2">
+      <p class="ex-why">The plan for JIRA-1234: steps with ACs, the tests table with commands, the files table, checks and risks.</p>
+      <div class="ex-window">
+        <div class="ex-bar"><span class="ex-name">.claude/skills/plan/references/example-plan.md</span><button class="ex-copy" type="button" data-target="c2">Click to Copy</button></div>
+        <pre id="c2"><span class="h"># JIRA-1234: Phone number on profile — plan</span>
+
+Status: approved (2026-10-28)
+
+<span class="h">## Steps</span>
+1. Write the tests in the Tests table. Run them. They must fail. → AC1, AC2, AC3, Must never
+2. Add `Phone` (nvarchar(20), optional) to `User` with the `add-ef-migration` skill. → AC1
+3. Add the E.164 rule to `ProfileRequestValidator.cs`, using `PhoneNumber.IsE164()` from `Shared/Contact/PhoneNumber.cs`. → AC1
+4. In `ProfileService.cs`, save an empty phone as `NULL`. → AC3
+5. Add the rate limit policy `profile-save` (2 per second, per user) in `Program.cs` and use it on `PUT /profile`. → AC2
+6. Add the phone field and the &quot;Invalid phone number&quot; error to `ProfileForm.tsx`. → AC1, AC3
+7. Add the changelog entry. → all
+
+<span class="h">## Tests</span>
+| AC | Test | File | Command |
+|---|---|---|---|
+| AC1 | ProfilePhoneTests.InvalidPhone | `tests/Api.Tests/Profile/ProfilePhoneTests.cs` | `dotnet test tests/Api.Tests --filter &quot;FullyQualifiedName~ProfilePhoneTests.InvalidPhone&quot;` |
+| AC2 | ProfilePhoneTests.RateLimit | `tests/Api.Tests/Profile/ProfilePhoneTests.cs` | `dotnet test tests/Api.Tests --filter &quot;FullyQualifiedName~ProfilePhoneTests.RateLimit&quot;` |
+| AC3 | ProfilePhoneTests.RemovePhone | `tests/Api.Tests/Profile/ProfilePhoneTests.cs` | `dotnet test tests/Api.Tests --filter &quot;FullyQualifiedName~ProfilePhoneTests.RemovePhone&quot;` |
+| Must never | PhoneProperties.AlwaysE164 | `tests/Api.Tests/Profile/PhoneProperties.cs` | `dotnet test tests/Api.Tests --filter &quot;FullyQualifiedName~PhoneProperties&quot;` |
+| E2E | profile phone | `web/e2e/profile-phone.spec.ts` | `npx playwright test web/e2e/profile-phone.spec.ts --trace on` |
+
+<span class="h">## Files</span>
+| File | Change | What | AC |
+|---|---|---|---|
+| `src/Domain/Entities/User.cs` | edit | `Phone` property | AC1 |
+| `src/Infrastructure/Persistence/Configurations/UserConfiguration.cs` | edit | max length 20 | AC1 |
+| `src/Infrastructure/Migrations/*_AddPhoneToUsers.cs` | new | migration (generated) | AC1 |
+| `src/Api/Profile/ProfileRequestValidator.cs` | edit | E.164 rule | AC1 |
+| `src/Api/Profile/ProfileService.cs` | edit | empty → NULL | AC3 |
+| `src/Api/Program.cs` | edit | rate limit policy | AC2 |
+| `web/app/profile/ProfileForm.tsx` | edit | phone field, error text | AC1, AC3 |
+| `tests/Api.Tests/Profile/ProfilePhoneTests.cs` | new | one test per AC | AC1, AC2, AC3 |
+| `tests/Api.Tests/Profile/PhoneProperties.cs` | new | property test | Must never |
+| `web/e2e/profile-phone.spec.ts` | new | main flow | AC1 |
+| `CHANGELOG.md` | edit | entry | all |
+
+<span class="h">## Checks</span>
+- `dotnet build src/Api --no-restore -warnaserror`
+- `npx tsc --noEmit -p web`
+- `npx eslint web/app/profile`
+
+<span class="h">## Risks</span>
+- The migration adds a column to `Users`, a large table. Check the SQL before deploy. (step 2)
+- The rate limit partitions by user id. Two tabs share the limit, which is what AC2 says. (step 5)</pre>
+      </div>
+    </section>
+    </div>
+  </div>
+  <p class="ex-note">Paths and commands assume a repo with <code>src/Api</code> (.NET), <code>backend/</code> (PHP) and <code>web/</code> (Next.js). MCP server names are the names in the repo's <code>.mcp.json</code>. Each team changes them to match its own repo. The files are in <a href="https://github.com/wunderdogsw/ai-driven-development-day/tree/main/examples">examples/</a> in the repo.</p>
+</main>
+<script src="../../assets/examples.js"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "smallMaxFiles": 5,
+  "mediumMaxFiles": 15,
+  "projects": {
+    "api": "src/**",
+    "backend": "backend/**",
+    "web": "web/**"
+  },
+  "critical": [
+    "**/Migrations/**",
+    "src/Infrastructure/Persistence/**",
+    "backend/database/**",
+    "**/Auth/**",
+    "**/Payments/**",
+    "src/Domain/**"
+  ],
+  "businessLogic": [
+    "src/Api/**/*Service.cs",
+    "backend/src/Domain/**"
+  ],
+  "actions": {
+    "Small": "auto-merge when all checks pass",
+    "Medium": "machine review is enough",
+    "Large": "needs a human",
+    "Critical": "human gate, mandatory"
+  }
+}
