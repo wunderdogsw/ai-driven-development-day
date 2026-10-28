@@ -1,0 +1,2185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Jakamo x Wunderdog – AI-native development</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../assets/nav.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+
+/* Layout: fixed 1600×900 stage scaled to the viewport; Wunderdog navy template, cover-streak accents. Single dark look by design. */
+:root{
+  --bg:#0a1d3a; --bg-deep:#050c19; --panel:#11284b; --panel-2:#16325c; --line:#2a4570;
+  --fg:#ffffff; --muted:#a3b5d0; --dim:#6a81a6;
+  --orange:#ff7a2f; --amber:#ffb454; --pink:#ff6fa8; --violet:#a98bff; --blue:#4c8dff; --sky:#8fd0ff;
+  --lime:#e8ff4a; --red:#ff5d5d;
+  --sans:"DM Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --ease:cubic-bezier(.2,.75,.2,1);
+  color-scheme:dark;
+}
+html,body{height:100%;margin:0;background:var(--bg-deep);color:var(--fg);overflow:hidden;font-family:var(--sans);-webkit-font-smoothing:antialiased}
+#deck{position:absolute;left:50%;top:50%;width:1600px;height:900px;transform-origin:center;transform:translate(-50%,-50%) scale(var(--scale,.5));background:var(--bg);overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.slide{position:absolute;inset:0;background:var(--bg);opacity:0;visibility:hidden;transition:opacity .55s var(--ease),visibility .55s;overflow:hidden;font-size:30px;line-height:1.35}
+.slide.active{opacity:1;visibility:visible}
+.abs{position:absolute}
+
+/* template chrome */
+.chrome .wm{position:absolute;left:83px;top:38px}
+.wm{font-weight:500;font-size:21px;letter-spacing:.48em;color:var(--fg)}
+.chrome .pg{position:absolute;right:83px;top:38px;font-size:22px;color:var(--fg);font-variant-numeric:tabular-nums}
+.chrome::after{content:"";position:absolute;left:83px;right:83px;top:80px;height:1px;background:rgba(255,255,255,.5)}
+.t{position:absolute;left:83px;right:83px;top:112px;margin:0;font-size:60px;line-height:1.1;font-weight:700;letter-spacing:-.012em;text-wrap:balance}
+.body{position:absolute;left:83px;right:83px;top:240px;bottom:64px}
+.desc{position:absolute;left:83px;right:83px;top:190px;margin:0;font-size:26px;line-height:1.35;color:var(--muted);max-width:1250px}
+
+/* step engine */
+.slide [data-s]{opacity:0;transform:translateY(26px);transition:opacity .6s var(--ease) var(--d,0s),transform .75s var(--ease) var(--d,0s)}
+.slide [data-s].fade{transform:none}
+.slide [data-s].left{transform:translateX(-46px)}
+.slide [data-s].right{transform:translateX(46px)}
+.slide [data-s].zoom{transform:scale(.86)}
+.slide [data-s].on{opacity:1;transform:none}
+.slide svg .draw[data-s]{opacity:1;transform:none;stroke-dasharray:var(--len,2000);stroke-dashoffset:var(--len,2000);transition:stroke-dashoffset 1.3s var(--ease) var(--d,0s)}
+.slide svg .draw[data-s].on{stroke-dashoffset:0}
+.slide [data-out]{transition:opacity .45s var(--ease)}
+.slide .gone{opacity:0 !important}
+
+/* shared pieces */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px 28px}
+.lbl{font-size:17px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--mono)}
+.muted{color:var(--muted)}
+.lime{color:var(--lime)} .orange{color:var(--orange)} .red{color:var(--red)} .violet{color:var(--violet)} .sky{color:var(--sky)}
+ul.b{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:18px}
+ul.b li{position:relative;padding-left:34px}
+ul.b li::before{content:"";position:absolute;left:4px;top:.55em;width:11px;height:11px;border-radius:50%;background:var(--orange)}
+.row{display:flex;gap:24px}
+.col{display:flex;flex-direction:column;gap:20px}
+.arrow{flex:none;width:46px;height:20px;align-self:center}
+.arrow path{stroke:var(--dim);stroke-width:2.5;fill:none}
+.pill{display:inline-flex;align-items:center;gap:10px;padding:8px 18px;border-radius:999px;border:1px solid var(--line);background:var(--panel);font-size:21px;white-space:nowrap}
+.statement{font-size:44px;font-weight:500;line-height:1.2;letter-spacing:-.01em}
+.term{background:#071224;border:1px solid var(--line);border-radius:14px;padding:24px 28px;font-family:var(--mono);font-size:21px;line-height:1.6;color:#d6e2f5;white-space:pre}
+.term .p{color:var(--lime)} .term .c{color:var(--dim)}
+.typing::after{content:"";display:inline-block;width:.55em;height:1.05em;vertical-align:-.15em;background:var(--lime);margin-left:2px;opacity:0}
+.typing.busy::after{opacity:1;animation:blink .8s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* cover + dividers */
+canvas.streaks{position:absolute;inset:0;width:1600px;height:900px}
+.cover-title{position:absolute;left:83px;top:330px;margin:0;font-size:84px;line-height:1.08;font-weight:700;letter-spacing:-.015em}
+.cover-title span{font-weight:400;display:block}
+.cover-meta{position:absolute;left:83px;top:640px;font-size:32px}
+.div-num{position:absolute;left:83px;top:250px;font-size:200px;font-weight:300;line-height:1;letter-spacing:-.04em;color:rgba(255,255,255,.9)}
+.div-title{position:absolute;left:83px;top:500px;margin:0;font-size:96px;font-weight:700;letter-spacing:-.02em}
+
+/* S2 two themes */
+.theme{flex:1;height:420px;border-radius:20px;padding:44px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;border:1px solid var(--line);background:var(--panel)}
+.theme .n{font-size:120px;font-weight:300;line-height:1;letter-spacing:-.04em}
+.theme h3{margin:0;font-size:56px;font-weight:700}
+.theme p{margin:6px 0 0;color:var(--muted);font-size:28px}
+.theme.a{background:linear-gradient(150deg,#18355f 0%,#11284b 60%)}
+.theme.a .n{color:var(--lime)}
+.theme.b{background:linear-gradient(150deg,#2a2350 0%,#11284b 65%)}
+.theme.b .n{color:var(--orange)}
+.bridge{position:absolute;left:0;right:0;top:240px;height:0;display:flex;justify-content:center;align-items:center;z-index:2}
+.bridge .pill{font-size:24px;background:var(--bg);border-color:var(--fg);padding:12px 26px}
+
+/* S4 vibes */
+.prompt{display:flex;align-items:center;gap:22px;font-size:30px}
+.lane{display:grid;grid-template-columns:120px 1fr 420px;align-items:center;gap:28px;height:84px}
+.lane .name{font-size:24px;color:var(--muted)}
+.track{height:14px;border-radius:7px;background:var(--panel-2);overflow:hidden}
+.track i{display:block;height:100%;width:0;border-radius:7px;background:linear-gradient(90deg,var(--blue),var(--sky))}
+.mv .track i,.track.mv i{width:100%;transition:width var(--t,2s) var(--ease)}
+.verdict{font-size:28px;font-weight:700;display:flex;align-items:center;gap:12px;white-space:nowrap}
+.mark{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--bg)}
+.mark.sm{width:32px;height:32px}
+.ico{width:62%;height:62%;fill:none;stroke:currentColor;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;display:block}
+.ico.tx{display:inline-block;width:.95em;height:.95em;vertical-align:-.12em;stroke-width:3}
+.mark.ok{background:var(--lime)} .mark.no{background:var(--red)}
+
+/* S5 anatomy */
+.anat{display:flex;align-items:stretch;gap:0;height:500px}
+.anat .node{flex:1;display:flex;flex-direction:column;gap:16px}
+.anat .node .card{flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:10px;padding:24px}
+.anat h4{margin:0;font-size:32px;font-weight:700}
+.anat p{margin:0;font-size:22px;color:var(--muted);line-height:1.3}
+.anat .arrow{width:52px}
+.vis{flex:1;display:flex;align-items:center;justify-content:center}
+.stack3{position:relative;width:120px;height:100px}
+.stack3 b{position:absolute;width:96px;height:66px;border-radius:10px;border:2px solid var(--sky);background:var(--panel-2)}
+.stack3 b:nth-child(1){left:0;top:0;opacity:.45}.stack3 b:nth-child(2){left:12px;top:14px;opacity:.7}.stack3 b:nth-child(3){left:24px;top:28px}
+.doc{width:96px;height:110px;border-radius:10px;border:2px solid var(--muted);padding:16px 14px;box-sizing:border-box;display:flex;flex-direction:column;gap:9px}
+.doc i{height:5px;border-radius:3px;background:var(--dim)} .doc i:nth-child(2){width:70%} .doc i:nth-child(4){width:50%}
+.score{font-size:76px;font-weight:700;color:var(--lime);line-height:1}
+
+/* S6 outcome */
+.bubble{position:relative;background:var(--panel-2);border-radius:26px 26px 26px 6px;padding:30px 34px;font-size:32px;max-width:560px}
+.stamp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-7deg);border:5px solid var(--red);color:var(--red);font-weight:700;font-size:44px;letter-spacing:.06em;padding:10px 28px;border-radius:12px;background:rgba(10,29,58,.88);white-space:nowrap}
+.slide .stamp[data-s]{transform:translate(-50%,-50%) rotate(-7deg) scale(1.6)}
+.slide .stamp[data-s].on{transform:translate(-50%,-50%) rotate(-7deg) scale(1)}
+
+/* S7 graders */
+.gcol{flex:1;display:flex;flex-direction:column;gap:20px}
+.gcol h3{margin:0;font-size:40px}
+.gcol .ex{font-size:23px;color:var(--muted);min-height:64px}
+.pro,.con{font-size:24px;display:flex;gap:12px;align-items:baseline}
+.pro::before{content:"+";color:var(--lime);font-weight:700}
+.con::before{content:"–";color:var(--orange);font-weight:700}
+.axis{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--lime),var(--sky) 50%,var(--orange))}
+
+/* S8 pass^k */
+.fcard{padding:24px 28px}
+.fcard .big{font-size:46px;font-weight:700;line-height:1.1}
+.fcard .f{font-family:var(--mono);font-size:26px;color:var(--muted);margin:8px 0 6px}
+.chart text{font-family:var(--sans);font-size:18px;fill:var(--muted)}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.slider{display:flex;align-items:center;gap:20px;font-size:24px;color:var(--muted)}
+.slider input{flex:1;accent-color:var(--lime);height:28px}
+.slider b{color:var(--fg);font-variant-numeric:tabular-nums;min-width:70px}
+
+/* S9 capability/regression */
+.cr{display:grid;grid-template-rows:1fr 1fr;gap:28px;height:520px}
+.crl{display:grid;grid-template-columns:330px 1fr 150px;align-items:center;gap:36px;border-radius:18px;padding:0 36px;border:1px solid var(--line);background:var(--panel);position:relative}
+.crl h3{margin:0;font-size:38px}
+.crl .qq{font-size:23px;color:var(--muted);margin-top:4px}
+.meter{height:22px;border-radius:11px;background:var(--panel-2);position:relative;overflow:hidden}
+.meter i.mv{width:var(--w2,var(--w))}
+.meter i{position:absolute;left:0;top:0;bottom:0;border-radius:11px;width:var(--w);transition:width 1.6s var(--ease)}
+.crl .pct{font-size:52px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.chip{position:absolute;padding:8px 16px;border-radius:10px;font-size:19px;font-family:var(--mono);background:var(--panel-2);border:1px solid var(--line);white-space:nowrap;transition:transform 1.2s var(--ease),border-color .6s,background .6s}
+.chip.grad.mv{transform:translateY(274px);border-color:var(--lime);background:#2b3a1e}
+
+/* S10 sources */
+.funnel{display:grid;grid-template-columns:420px 1fr 380px;align-items:center;height:560px}
+.src{display:flex;flex-direction:column;gap:22px}
+.src .card{padding:20px 26px;font-size:27px;display:flex;align-items:center;gap:16px}
+.src .card i{width:14px;height:14px;border-radius:4px;background:var(--orange);flex:none}
+.flow path{fill:none;stroke:var(--line);stroke-width:2}
+.flow .dash{stroke:var(--lime);stroke-width:3;stroke-dasharray:3 18;opacity:0}
+.flow.mv .dash{opacity:1;animation:flow 1.1s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-42}}
+.suite{border-radius:20px;border:2px solid var(--lime);padding:36px;text-align:center;background:var(--panel)}
+.suite .count{font-size:110px;font-weight:700;line-height:1;color:var(--lime);font-variant-numeric:tabular-nums}
+
+/* S12 plugin anatomy */
+.tree{font-family:var(--mono);font-size:24px;line-height:1.75;color:#d6e2f5;white-space:pre}
+.tree .d{color:var(--sky)} .tree .g{color:var(--dim)}
+.fileh{font-family:var(--mono);font-size:18px;color:var(--muted);margin-bottom:10px}
+.code{font-family:var(--mono);font-size:19px;line-height:1.55;white-space:pre;color:#d6e2f5}
+.code .k{color:var(--sky)} .code .s{color:var(--amber)} .code .c{color:var(--dim)}
+
+/* S14 grader types */
+.gt{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.gt .grp{display:flex;flex-direction:column;gap:16px}
+.gchip{display:grid;grid-template-columns:200px 1fr;align-items:center;gap:20px;padding:18px 24px;border-radius:14px;background:var(--panel);border:1px solid var(--line)}
+.gchip b{font-family:var(--mono);font-size:24px;font-weight:600}
+.gchip span{font-size:22px;color:var(--muted)}
+.grp.free .gchip b{color:var(--lime)} .grp.judge .gchip b{color:var(--violet)}
+
+/* S13 results table */
+.res{display:grid;grid-template-columns:1.6fr .8fr .8fr .8fr;font-family:var(--mono);font-size:22px;row-gap:12px}
+.res .h{color:var(--dim)}
+.pos{color:var(--lime)} .zero{color:var(--orange)}
+
+/* S11 delta bars */
+.db{display:grid;grid-template-columns:280px 1fr 120px;align-items:center;row-gap:40px;column-gap:30px}
+.db .case{font-family:var(--mono);font-size:23px}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{height:28px;border-radius:5px;width:0;transition:width 1.2s var(--ease) var(--d,0s)}
+.bar.w{background:var(--lime)} .bar.wo{background:#5b77a3}
+.bars.mv .bar{width:var(--v)}
+.db .delta{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums}
+.hl{position:absolute;left:-20px;right:-20px;border:2px dashed var(--orange);border-radius:16px}
+.legend{display:flex;gap:30px;font-size:21px;color:var(--muted)}
+.legend i{display:inline-block;width:18px;height:18px;border-radius:4px;vertical-align:-3px;margin-right:10px}
+
+/* S15 triggers */
+.q{font-size:25px;padding:16px 22px;border-radius:12px;background:var(--panel);border:1px solid var(--line);display:flex;gap:16px;align-items:center}
+.q .ic{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:18px;font-weight:700;color:var(--bg)}
+
+/* S16 pitfalls */
+.pit{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.pit .card{padding:30px 34px;display:flex;flex-direction:column;gap:12px;min-height:200px;box-sizing:border-box}
+.pit h3{margin:0;font-size:34px}
+.pit p{margin:0;font-size:24px;color:var(--muted)}
+.jump{display:flex;align-items:baseline;gap:18px;font-size:48px;font-weight:700}
+
+/* loops (S17, S33) */
+.loop{position:absolute;left:50%;top:50%;width:560px;height:560px;margin:-280px 0 0 -280px}
+.loop .ring{position:absolute;inset:40px;border-radius:50%;border:2px dashed var(--line)}
+.loop .orb{position:absolute;inset:40px;animation:spin 9s linear infinite}
+.loop .orb::before{content:"";position:absolute;left:50%;top:-9px;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:var(--lime);box-shadow:0 0 22px var(--lime)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ln{position:absolute;width:240px;margin-left:-120px;margin-top:-40px;text-align:center}
+.ln .card{padding:18px 18px;font-size:27px;font-weight:500;background:var(--bg);border-color:var(--fg)}
+.ln small{display:block;font-size:19px;color:var(--muted);margin-top:6px;font-weight:400}
+.center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center}
+
+/* S20 timeline */
+.tl{position:absolute;left:40px;right:40px;top:120px}
+.tl .base{position:absolute;left:0;right:0;top:0;height:4px;background:var(--line);border-radius:2px}
+.tl .fill{position:absolute;left:0;top:0;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--sky),var(--violet),var(--orange));width:calc(var(--p,0)*100%);transition:width 1s var(--ease)}
+.stop{position:absolute;top:0;width:270px;margin-left:-135px;text-align:center}
+.stop .who{padding-top:18px;border-top:1px solid var(--line)}
+.stop .dot{width:26px;height:26px;border-radius:50%;margin:-11px auto 0;background:var(--bg);border:4px solid var(--line);transition:border-color .5s,background .5s}
+.stop.mv .dot{border-color:var(--fg);background:var(--orange)}
+.stop h4{margin:34px 0 8px;font-size:32px;font-weight:700}
+.stop p{margin:0;font-size:23px;color:var(--muted);min-height:64px}
+.stop .who{margin-top:90px;font-size:26px;font-weight:500;color:var(--lime)}
+
+/* S21 where */
+.where{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.where .card{display:flex;flex-direction:column;gap:14px;height:380px;box-sizing:border-box;padding:32px 30px}
+.where h3{margin:0;font-size:34px}
+.where p{margin:0;font-size:25px;color:var(--muted)}
+.where .tag{margin-top:auto;font-family:var(--mono);font-size:19px;color:var(--sky)}
+.spectrum{display:flex;justify-content:space-between;font-size:22px;color:var(--muted);margin-top:34px;position:relative;padding-top:24px}
+.spectrum::before{content:"";position:absolute;left:0;right:0;top:0;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--sky),var(--violet),var(--orange))}
+
+/* S22 pipeline */
+.pipe{position:relative;display:flex;justify-content:space-between;align-items:flex-start;margin-top:90px}
+.pipe::before{content:"";position:absolute;left:70px;right:70px;top:65px;height:3px;background:var(--line)}
+.pipe .nd{position:relative;width:180px;text-align:center}
+.pipe .nd .o{width:130px;height:130px;margin:0 auto;border-radius:50%;background:var(--panel);border:3px solid var(--line);display:grid;place-items:center;font-family:var(--mono);font-size:20px;color:var(--dim)}
+.pipe .nd h4{margin:24px 0 8px;font-size:28px}
+.pipe .nd p{margin:0;font-size:20px;color:var(--muted)}
+.pipe.mv .nd .o{animation:lit .5s var(--ease) both;animation-delay:calc(var(--i)*.55s + .2s)}
+@keyframes lit{from{border-color:var(--line);color:var(--dim);background:var(--panel)}to{border-color:var(--lime);color:var(--lime);background:#1e3215}}
+.pipe.mv .nd .o{border-color:var(--lime);color:var(--lime);background:#1e3215}
+.pipe .tok{position:absolute;top:56px;left:80px;width:22px;height:22px;border-radius:50%;background:var(--lime);box-shadow:0 0 24px var(--lime);opacity:0}
+.pipe.mv .tok{animation:travel 3.6s var(--ease) .2s both}
+@keyframes travel{0%{left:80px;opacity:1}95%{opacity:1}100%{left:calc(100% - 100px);opacity:0}}
+.pipe .loopy{animation:none}
+.pipe.mv .nd.agent .o{animation:lit .5s var(--ease) both, pulse 1.6s ease-in-out 2.6s infinite;animation-delay:calc(var(--i)*.55s + .2s),2.6s}
+@keyframes pulse{50%{box-shadow:0 0 0 14px rgba(232,255,74,.12)}}
+
+/* S23 environment */
+.env{display:grid;grid-template-columns:640px 1fr;gap:50px}
+.field{display:flex;flex-direction:column;gap:10px;margin-bottom:26px}
+.seg{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.seg button{flex:1;font:inherit;font-size:22px;padding:14px 0;background:transparent;color:var(--muted);border:0;border-right:1px solid var(--line);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--lime);color:var(--bg);font-weight:700}
+.seg button:focus-visible{outline:3px solid var(--sky);outline-offset:-3px}
+.hosts{display:flex;flex-direction:column;gap:14px}
+.host{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;border-radius:12px;border:1px solid var(--line);background:var(--panel);font-family:var(--mono);font-size:23px;transition:opacity .4s,border-color .4s}
+.host .st{font-family:var(--sans);font-size:20px;font-weight:700;padding:4px 14px;border-radius:999px}
+.host.ok{border-color:#4f6a2a}.host.ok .st{background:var(--lime);color:var(--bg)}
+.host.no{opacity:.55}.host.no .st{background:transparent;color:var(--red);border:1px solid var(--red)}
+
+/* S24 creds */
+.vm{position:absolute;left:0;top:30px;width:520px;height:330px;border:2px dashed var(--sky);border-radius:22px;padding:28px;box-sizing:border-box}
+.box{position:absolute;border-radius:16px;background:var(--panel);border:1px solid var(--line);display:grid;place-items:center;text-align:center;font-size:28px;font-weight:500}
+.pkt{position:absolute;width:30px;height:30px;border-radius:8px;background:var(--sky);top:250px;left:300px;opacity:0}
+.mv .pkt,.pkt.mv{animation:pkt 3.2s var(--ease) both infinite}
+@keyframes pkt{0%{left:300px;opacity:0;background:var(--sky)}8%{opacity:1}45%{left:735px;background:var(--sky)}55%{left:735px;background:var(--lime);box-shadow:0 0 22px var(--lime)}92%{left:1270px;opacity:1;background:var(--lime)}100%{left:1270px;opacity:0;background:var(--lime)}}
+
+/* trifecta */
+.tri{display:grid;grid-template-columns:700px 1fr;gap:60px}
+.tri-fig{position:relative;width:700px;height:560px}
+.tri svg text{font-family:var(--sans)}
+.tri .ttl{font-size:26px;font-weight:700}
+.tri .sub{font-size:19px;fill:var(--muted)}
+.tri .cap{font-size:19px;fill:var(--muted)}
+.tri .mid{font-size:30px;font-weight:700;text-anchor:middle}
+.tri .node{fill:var(--panel);stroke-width:4}
+.tri .num{font-size:30px;font-weight:700;text-anchor:middle;dominant-baseline:central}
+.tri .atk{stroke:var(--red);stroke-width:5;fill:none}
+.tri .cutline{stroke:var(--muted);stroke-width:3;stroke-dasharray:10 10;fill:none;opacity:.5}
+.tri-dot{position:absolute;left:0;top:0;width:24px;height:24px;border-radius:50%;background:var(--red);box-shadow:0 0 18px var(--red);opacity:0;offset-path:path('M95 440 L350 60 L605 440');offset-rotate:0deg}
+.tri-dot.mv{animation:tridot 3.4s var(--ease) .8s infinite}
+@keyframes tridot{0%{offset-distance:0%;opacity:0}10%{opacity:1}80%{offset-distance:100%;opacity:1}100%{offset-distance:100%;opacity:0}}
+@media print{.tri-dot{display:none}}
+
+/* S25 hub */
+.hub{position:absolute;inset:0}
+.hub svg{position:absolute;inset:0;width:100%;height:100%}
+.hub .spoke{stroke:var(--line);stroke-width:2.5;fill:none}
+.hub .pulse{stroke:var(--orange);stroke-width:4;fill:none;stroke-dasharray:16 400;opacity:0}
+.hub .pulse.on{opacity:1;animation:pls 2.2s linear infinite}
+@keyframes pls{from{stroke-dashoffset:420}to{stroke-dashoffset:0}}
+.hn{position:absolute;width:300px;margin-left:-150px;margin-top:-62px}
+.hn .card{padding:18px 22px;text-align:center}
+.hn h4{margin:0;font-size:29px}
+.hn p{margin:6px 0 0;font-size:20px;color:var(--muted);font-family:var(--mono)}
+.core{position:absolute;left:50%;top:50%;width:250px;height:250px;margin:-125px 0 0 -125px;border-radius:50%;display:grid;place-items:center;text-align:center;font-size:30px;font-weight:700;background:radial-gradient(circle at 40% 35%,#ff9a52,#c4467f 55%,#3b2f86);box-shadow:0 0 70px rgba(255,122,47,.35)}
+
+/* S26 fan-out */
+.lanes{display:flex;flex-direction:column;gap:24px}
+.fl{display:grid;grid-template-columns:1fr 150px;gap:24px;align-items:center;padding:20px 26px;border-radius:14px;background:var(--panel);border:1px solid var(--line)}
+.fl .nm{font-size:23px;margin-bottom:12px}
+.fl .track{height:10px}
+.fl .track i{background:linear-gradient(90deg,var(--violet),var(--orange))}
+.prb{font-family:var(--mono);font-size:21px;text-align:center;padding:8px 0;border-radius:10px;border:1px solid var(--lime);color:var(--lime)}
+
+/* S27 plan flow */
+.pf{display:flex;align-items:stretch;gap:0}
+.pf .st{flex:1;display:flex;flex-direction:column;gap:14px}
+.pf .loc{font-size:18px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+.pf .card{flex:1;display:flex;flex-direction:column;gap:18px;min-height:210px;box-sizing:border-box}
+.pf h3{margin:0;font-size:34px}
+.pf code{font-family:var(--mono);font-size:21px;color:var(--sky);word-break:break-word;white-space:normal}
+
+/* S28 PR */
+.pr{width:780px}
+.pr .head{display:flex;align-items:center;gap:16px;font-size:32px;font-weight:700}
+.pr .br{font-family:var(--mono);font-size:20px;color:var(--muted);margin:10px 0 24px}
+.check{display:flex;align-items:center;gap:16px;padding:16px 20px;border-top:1px solid var(--line);font-size:23px;position:relative;min-height:40px}
+.check .s{width:22px;height:22px;border-radius:50%;flex:none}
+.swap{position:relative;flex:1;height:34px}
+.swap>*{position:absolute;inset:0;display:flex;align-items:center;gap:14px}
+.comment{margin-top:14px;padding:16px 20px;border-radius:12px;background:var(--panel-2);font-size:22px}
+.comment b{color:var(--sky);font-weight:500}
+
+/* S29 managed */
+.mg{position:absolute;inset:0}
+.mg .box{font-size:26px}
+.mg .box small{display:block;font-size:19px;color:var(--muted);font-weight:400;margin-top:6px}
+.prov{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:12px}
+.prov span{font-size:17px;padding:4px 12px;border-radius:999px;border:1px solid var(--line);color:var(--muted);font-weight:400}
+
+/* case flows */
+.cf{display:flex;align-items:stretch}
+.cf .card{flex:1;display:flex;flex-direction:column;gap:14px;padding:28px 24px;min-height:220px;box-sizing:border-box}
+.cf .card .k{font-family:var(--mono);font-size:18px;color:var(--orange)}
+.cf .card h4{margin:0;font-size:29px;line-height:1.22}
+.cf .arrow{width:42px}
+.evals{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:64px}
+.evals .lbl{margin-right:6px}
+.evals .pill{border-color:var(--lime)}
+.evals .pill i{width:10px;height:10px;border-radius:50%;background:var(--lime)}
+.casetag{position:absolute;right:83px;top:126px;font-size:20px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--orange)}
+
+/* S32 grid */
+.mods{display:grid;grid-template-columns:repeat(8,1fr);gap:12px}
+.mods i{aspect-ratio:1.6;border-radius:8px;background:var(--panel);border:1px solid var(--line)}
+.mods.mv i{animation:done .5s var(--ease) both;animation-delay:var(--d)}
+@keyframes done{from{background:var(--panel);border-color:var(--line)}to{background:var(--lime);border-color:var(--lime)}}
+.mods.mv i{background:var(--lime);border-color:var(--lime)}
+.gate{display:flex;align-items:center;gap:14px;font-size:24px;padding:14px 20px;border-radius:12px;border:1px solid var(--lime);color:var(--lime)}
+
+/* thanks */
+.stacklogo{position:absolute;right:150px;top:306px;font-weight:500;font-size:64px;letter-spacing:.5em;line-height:1.5;text-align:left}
+.thanks{position:absolute;left:83px;top:388px;margin:0;font-size:96px;font-weight:700}
+
+
+/* overlays */
+.fchip{position:absolute;max-width:290px;padding:10px 14px;border-radius:10px;background:rgba(6,15,31,.94);border:1.5px solid var(--c,var(--line));font-size:18px;line-height:1.3;color:#cfdbef;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.fchip b{display:block;color:var(--c,var(--fg));font-size:20px;font-weight:700;margin-bottom:2px}
+.fchip.k-rule{--c:var(--sky)} .fchip.k-skill{--c:var(--violet)} .fchip.k-hook{--c:var(--amber)} .fchip.k-eval{--c:var(--lime)} .fchip.k-sched{--c:var(--orange)} .fchip.k-routine{--c:var(--pink)} .fchip.k-bad{--c:var(--red)} .fchip.k-plain{--c:#cfdbef}
+.twin{position:absolute;top:524px;width:200px;margin-left:-100px;text-align:center;font-size:19px;font-weight:600;color:var(--lime)}
+.board{position:absolute;padding:14px 18px;border-radius:12px;background:rgba(6,15,31,.95);border:1.5px solid var(--c,var(--line));font-size:18px;line-height:1.45;color:#cfdbef;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.board b{display:block;color:var(--c);font-size:20px;margin-bottom:6px}
+.board .r{display:flex;justify-content:space-between;gap:18px;font-family:var(--mono);font-size:16px}
+.board .r span:last-child{color:var(--c)}
+.crew{position:absolute;display:flex;align-items:center;gap:10px;padding:8px 14px 8px 8px;border-radius:999px;background:rgba(6,15,31,.95);border:2px solid var(--orange);font-size:19px;font-weight:600;white-space:nowrap}
+.crew i{font-style:normal;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--orange);color:var(--bg);font-weight:700}
+.fcap{position:absolute;left:83px;right:83px;top:770px;display:grid;grid-template-columns:1fr 1fr;gap:48px;font-size:24px;line-height:1.35}
+.fcap>div{padding-left:18px;border-left:4px solid var(--c)}
+.fcap .fc1{--c:var(--orange)} .fcap .fc2{--c:var(--lime)}
+.fcap b{display:block;font-size:15px;letter-spacing:.16em;text-transform:uppercase;color:var(--c);margin-bottom:4px}
+/* evolution grid */
+.evo{display:grid;grid-template-columns:230px repeat(3,1fr);gap:20px}
+.evo .hd{font-size:30px;font-weight:700;padding:6px 4px}
+.evo .hd small{display:block;font-size:18px;font-weight:400;color:var(--muted)}
+.evo .rl{font-size:27px;font-weight:700;align-self:center}
+.evo .cell{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;font-size:24px;line-height:1.35;min-height:110px}
+.evo .cell code{font-family:var(--mono);font-size:20px;color:var(--sky)}
+.evo .gatebar{grid-column:2/-1;display:flex;align-items:center;gap:14px;padding:14px 20px;border-radius:12px;border:1.5px solid var(--lime);color:var(--lime);font-size:22px;font-weight:600}
+.lines3{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.lines3 .card{display:flex;flex-direction:column;gap:14px;min-height:300px;box-sizing:border-box}
+.lines3 h3{margin:0;font-size:34px}
+.lines3 p{margin:0;font-size:24px;color:var(--muted)}
+.lines3 .tag{margin-top:auto;font-family:var(--mono);font-size:18px;color:var(--orange)}
+@media print{.tp-car{transform:translateX(var(--px));opacity:1}.tp-car .tp-tag,.tp-car .tp-green,.tp-car .tp-cured,.tp-car .tp-ok{opacity:0}.tp-car.st-tag .tp-tag,.tp-car.st-green .tp-green,.tp-car.st-cured .tp-cured,.tp-car.st-ok .tp-cured,.tp-car.st-ok .tp-ok{opacity:1}.ck{display:none}.ck-static{display:inline}.tk{opacity:1}.factory.sampling .sample{opacity:1}}
+@media (prefers-reduced-motion: reduce){.ck{display:none}.ck-static{display:inline}}
+
+/* presenter notes */
+.np{position:fixed;left:0;right:0;bottom:0;height:36vh;background:#061020;border-top:2px solid var(--orange);z-index:25;display:flex;flex-direction:column;gap:8px;padding:12px 20px calc(12px + env(safe-area-inset-bottom,0px));box-sizing:border-box;font-family:var(--sans)}
+.np[hidden]{display:none}
+.np-head{display:flex;justify-content:space-between;align-items:center;gap:16px;font-size:14px;color:var(--muted)}
+.np-head b{color:var(--fg);font-size:16px}
+.np-head button{font:inherit;font-size:13px;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:3px 10px;cursor:pointer}
+.np textarea{flex:1;min-height:0;resize:none;background:#0b1a33;color:#e6eefb;border:1px solid var(--line);border-radius:8px;padding:12px 14px;font:17px/1.5 var(--sans)}
+.np textarea:focus{outline:2px solid var(--orange);outline-offset:-1px}
+body.notes-open .ui,body.notes-open .hint{bottom:calc(36vh + 12px)}
+body.notes-open #deck{box-shadow:none}
+[hidden]{display:none !important}
+/* UI */
+.ui{position:fixed;right:16px;bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:6px;align-items:center;z-index:20;opacity:0;transition:opacity .4s;font-family:var(--sans)}
+body.show-ui .ui{opacity:1}
+.ui button{font:inherit;font-size:14px;color:var(--fg);background:rgba(17,40,75,.9);border:1px solid var(--line);border-radius:8px;height:34px;min-width:34px;padding:0 10px;cursor:pointer}
+.ui button:focus-visible,.ui a.pdf:focus-visible{outline:2px solid var(--lime)}
+.ui a.pdf{display:inline-flex;align-items:center;font-size:14px;color:var(--fg);text-decoration:none;background:rgba(17,40,75,.9);border:1px solid var(--line);border-radius:8px;height:34px;padding:0 10px}
+.ui .ctr{font-size:13px;color:var(--muted);padding:0 8px;font-variant-numeric:tabular-nums}
+.prog{position:fixed;left:0;bottom:0;height:3px;background:linear-gradient(90deg,var(--orange),var(--violet));width:0;z-index:20;transition:width .4s var(--ease)}
+.ov{position:fixed;inset:0;z-index:30;background:rgba(5,12,25,.96);padding:40px 24px;overflow:auto;display:none;box-sizing:border-box}
+.ov.open{display:block}
+.ov h2{margin:0 auto 20px;max-width:1200px;font-size:15px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.ov .grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.ov button{text-align:left;font:inherit;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;cursor:pointer;font-size:15px;line-height:1.3;min-height:76px}
+.ov button span{display:block;color:var(--dim);font-size:12px;margin-bottom:6px;font-variant-numeric:tabular-nums}
+.ov button.cur{border-color:var(--lime)}
+.hint{position:fixed;left:16px;bottom:calc(14px + env(safe-area-inset-bottom,0px));font-size:13px;color:var(--muted);z-index:20;opacity:0;transition:opacity .4s}
+body.show-ui .hint{opacity:1}
+
+@media (prefers-reduced-motion: reduce){
+  .slide [data-s]{transition-duration:.01s !important}
+  .loop .orb,.pulse,.flow .dash{animation:none !important}
+}
+
+/* print / PDF: one slide per page, final state */
+@media print{
+  @page{size:1600px 900px;margin:0}
+  html,body{overflow:visible;height:auto;background:var(--bg)}
+  #deck{position:static;transform:none !important;box-shadow:none;width:1600px;height:auto;overflow:visible}
+  .slide{position:relative;opacity:1 !important;visibility:visible !important;width:1600px;height:900px;break-after:page;page-break-after:always}
+  .ui,.prog,.ov,.hint,.np{display:none !important}
+  *{transition:none !important;animation:none !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .typing::after{display:none}
+}
+
+/* ===== Jakamo deck: shared components ===== */
+.cards{display:grid;grid-template-columns:repeat(var(--n,3),1fr);gap:24px}
+.cards .card{display:flex;flex-direction:column;gap:12px;box-sizing:border-box}
+.cards h3{margin:0;font-size:32px;line-height:1.15}
+.cards p{margin:0;font-size:23px;line-height:1.35;color:var(--muted)}
+.cards .k{font-family:var(--mono);font-size:18px;color:var(--orange);letter-spacing:.04em}
+.cards code,.cv code,.ladder code,.tbl code,.vs code,p code,li code{font-family:var(--mono);font-size:.82em;color:var(--sky)}
+.card.hi{border-color:var(--lime)} .card.warn{border-color:var(--orange)} .card.bad{border-color:var(--red)} .card.sk{border-color:var(--sky)}
+.center-col{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;height:100%}
+.huge{font-size:180px;font-weight:700;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.big{font-size:96px;font-weight:700;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.sub{font-size:28px;color:var(--muted);margin-top:14px}
+.quote{font-size:64px;font-weight:700;line-height:1.12;letter-spacing:-.015em;max-width:1300px;text-wrap:balance}
+.quote em{font-style:normal;color:var(--orange)}
+.src-line{position:absolute;left:83px;bottom:34px;font-size:17px;color:var(--dim)}
+
+/* horizontal bars: label | bar | value */
+.hb{display:grid;grid-template-columns:330px 1fr 170px;align-items:center;row-gap:34px;column-gap:28px}
+.hb .lab{font-size:26px}
+.hb .lab small{display:block;font-size:19px;color:var(--muted)}
+.hb .tr{height:46px;border-radius:8px;background:var(--panel-2);overflow:hidden}
+.hb .tr i{display:block;height:100%;width:0;border-radius:8px;background:var(--c,var(--sky));transition:width 1.6s var(--ease) var(--d,0s)}
+.hb .mv i,.hb .tr.mv i{width:var(--v)}
+.hb .val{font-size:44px;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* pipeline of stages whose width can change */
+.stages{display:flex;gap:12px;align-items:stretch;height:170px}
+.stg{flex:var(--g,1) 1 0;min-width:0;border-radius:14px;background:var(--panel);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;text-align:center;font-size:25px;font-weight:600;padding:0 8px;transition:flex-grow 1.4s var(--ease),border-color .8s,background .8s,color .8s;overflow:hidden;white-space:nowrap}
+.stg.shrink.mv{flex-grow:.35;color:var(--dim)}
+.stg.grow.mv{flex-grow:2.6;border-color:var(--red);background:#3a1620;color:#ffd0d0}
+.stg.lit.mv{border-color:var(--lime);background:#1e3215;color:var(--lime)}
+
+/* ladder: from request to guarantee */
+.ladder{display:grid;grid-template-columns:70px 1fr;gap:0 30px;height:100%}
+.ladder .rail{grid-row:1/-1;position:relative;border-radius:35px;background:linear-gradient(180deg,var(--sky),var(--violet) 50%,var(--lime))}
+.ladder .rail span{position:absolute;left:50%;transform:translateX(-50%) rotate(180deg);writing-mode:vertical-rl;font-size:17px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--bg)}
+.ladder .rail .t1{top:22px}.ladder .rail .t2{bottom:22px}
+.rung{display:grid;grid-template-columns:330px 1fr;align-items:center;gap:26px;padding:14px 26px;margin-bottom:12px;border-radius:14px;background:var(--panel);border:1px solid var(--line)}
+.rung h3{margin:0;font-size:31px}
+.rung p{margin:0;font-size:22px;color:var(--muted)}
+.rung.cur{border-color:var(--lime);background:#16301f}
+.rung.dim{opacity:.4}
+.mini-ladder{position:absolute;right:83px;top:94px;display:flex;gap:6px}
+.mini-ladder i{width:58px;height:10px;border-radius:5px;background:var(--line)}
+.mini-ladder i.on{background:var(--lime)}
+
+/* two-column compare */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.vs .card{display:flex;flex-direction:column;gap:16px;min-height:300px;box-sizing:border-box}
+.vs .lbl.bad{color:var(--red)} .vs .lbl.good{color:var(--lime)}
+.vs .txt{font-size:28px;line-height:1.4}
+.vs .ac{font-size:24px;line-height:1.4;padding:14px 18px;border-radius:10px;background:var(--panel-2)}
+.vs .ac b{color:var(--lime);font-family:var(--mono);font-size:20px;margin-right:10px}
+
+/* code / file panes */
+.pane{background:#071224;border:1px solid var(--line);border-radius:14px;padding:22px 26px}
+.pane .fileh{margin-bottom:12px}
+.code.sm{font-size:17px}
+
+/* simple table */
+.tbl{display:grid;grid-template-columns:var(--cols);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:22px}
+.tbl>div{padding:14px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
+.tbl>.h{background:var(--panel-2);font-size:16px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.tbl .m{font-family:var(--mono);font-size:19px;color:var(--sky)}
+
+/* where files live */
+.scope{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.scope .card{display:flex;flex-direction:column;gap:14px;min-height:380px;box-sizing:border-box}
+.scope h3{margin:0;font-size:36px}
+.scope .who{font-size:21px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+.scope ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-family:var(--mono);font-size:19px;color:#d6e2f5}
+.scope p{margin:auto 0 0;font-size:22px;color:var(--muted)}
+
+/* sequence diagram */
+.seq svg{width:100%;height:100%}
+.seq text{font-family:var(--sans);fill:#d6e2f5}
+.seq .actor{fill:var(--panel);stroke:var(--sky);stroke-width:2}
+.seq .life{stroke:var(--line);stroke-width:2;stroke-dasharray:6 8}
+.seq .msg{stroke:var(--fg);stroke-width:2.5;fill:none}
+.seq .msg.err{stroke:var(--red)}
+.seq .ret{stroke:var(--muted);stroke-width:2;stroke-dasharray:8 6;fill:none}
+.seq .lab{font-size:19px}
+.seq .ac{font-family:var(--mono);font-size:15px;fill:var(--lime)}
+.seq .miss{stroke:var(--orange);stroke-width:3;stroke-dasharray:10 8;fill:none}
+
+/* chat / questions */
+.chat{display:flex;flex-direction:column;gap:16px}
+.msgb{max-width:900px;padding:18px 24px;border-radius:18px;font-size:24px;line-height:1.35}
+.msgb.ag{background:var(--panel-2);border-radius:18px 18px 18px 6px}
+.msgb.hu{align-self:flex-end;background:#1e3215;color:#eaffc8;border-radius:18px 18px 6px 18px}
+.opts{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+.opts span{font-size:19px;padding:6px 14px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.opts span.pick{border-color:var(--lime);color:var(--lime)}
+
+/* grades */
+.grades{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.grades .card{display:flex;flex-direction:column;gap:12px;min-height:360px;box-sizing:border-box;border-top:8px solid var(--c)}
+.grades h3{margin:0;font-size:36px;color:var(--c)}
+.grades p{margin:0;font-size:22px;color:var(--muted)}
+.grades .gate{margin-top:auto;border-color:var(--c);color:var(--c);font-size:21px}
+
+/* evidence checklist */
+.evid{display:flex;flex-direction:column;gap:0}
+.evid .check{font-size:24px}
+.evid .check .s{background:var(--lime)}
+.evid .check .s.w{background:var(--orange)}
+
+/* review layers */
+.layers{display:grid;grid-template-columns:1fr 1fr;gap:34px}
+.layers .card{min-height:420px;display:flex;flex-direction:column;gap:14px;box-sizing:border-box}
+.layers h3{margin:0;font-size:36px}
+.layers ul.b{font-size:24px;gap:12px}
+
+/* split review box */
+.split{display:flex;gap:0;height:300px;border-radius:20px;overflow:hidden;border:2px solid var(--line)}
+.split>div{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px;font-size:34px;font-weight:700;transition:flex-grow 1.2s var(--ease)}
+.split .m{background:#1e3215;color:var(--lime)}
+.split .h{background:#2a2350;color:var(--violet)}
+.split small{font-size:22px;font-weight:400;color:var(--muted)}
+.ticks{display:flex;gap:14px}
+.ticks .mark{width:46px;height:46px}
+
+/* agenda */
+.agenda{display:flex;flex-direction:column;gap:14px}
+.agenda .it{display:grid;grid-template-columns:180px 70px 1fr;align-items:center;gap:20px;padding:16px 24px;border-radius:14px;background:var(--panel);border:1px solid var(--line);font-size:28px}
+.agenda .it .tm{font-family:var(--mono);font-size:22px;color:var(--muted)}
+.agenda .it .no{font-size:30px;font-weight:700;color:var(--orange)}
+.agenda .it small{display:block;font-size:20px;color:var(--muted)}
+
+/* vote */
+.vote{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.vote .card{text-align:center;padding:40px 20px}
+.vote .f{font-size:26px;color:var(--muted)}
+.vote .v{font-size:80px;font-weight:700;margin-top:10px}
+
+/* myth or true */
+.myth{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.myth .card{display:grid;grid-template-columns:1fr 150px;align-items:center;gap:16px;padding:22px 26px}
+.myth .card p{margin:0;font-size:25px}
+.myth .verdict{justify-content:flex-end;font-size:24px;color:var(--orange)}
+
+/* hook demo */
+.hookflow{display:grid;grid-template-columns:1fr 70px 1fr 70px 1fr;align-items:center}
+.hookflow .card{min-height:200px;display:flex;flex-direction:column;justify-content:center;gap:12px;box-sizing:border-box}
+.hookflow h4{margin:0;font-size:28px}
+.hookflow p{margin:0;font-size:21px;color:var(--muted)}
+.hookflow .arrow{width:60px}
+
+/* ===== fixes after first render ===== */
+.ladder{grid-template-rows:repeat(5,auto);align-content:start}
+.ladder .rail{grid-column:1;grid-row:1/span 5}
+.ladder .rung{grid-column:2}
+.mark.sm{display:inline-grid;vertical-align:-7px;margin-right:12px}
+.ticks .mark.sm{margin-right:0}
+.pane{align-self:start}
+.cards h3{font-size:34px}
+.cards p{font-size:25px}
+.cards .card{min-height:180px}
+.layers .card{min-height:240px}
+.stg.shrink.mv{flex-grow:.5;font-size:17px}
+.body.center-col{height:auto}
+.statement{font-size:40px}
+.myth .card{min-height:130px}
+.rung{min-height:104px;box-sizing:border-box}
+.cards[style*="--n:1"] .card{min-height:0}
+
+</style>
+</head>
+<body>
+<style>.site-nav{position:fixed;top:0;left:0;right:0;z-index:30}.site-nav .icon-link[aria-current="page"]{color:#8bb8f0}html:fullscreen .site-nav{display:none}</style>
+<nav class="site-nav on-dark" aria-label="Workshop pages">
+  <div class="inner">
+    <a class="brand" href="../" aria-label="Workshop home"><span class="wd-logo" role="img" aria-label="Wunderdog"></span></a>
+    <ul>
+      <li><a class="link icon-link" href="./" aria-current="page" aria-label="Slides" title="Slides"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/></svg></a></li>
+      <li><a class="link" href="ai-native-development.pdf" download title="Slides with speaker notes (PDF)">Download PDF</a></li>
+      <li><a class="link icon-link" href="https://github.com/wunderdogsw/ai-driven-development-day" aria-label="GitHub repository" title="GitHub repository"><svg class="icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg></a></li>
+    </ul>
+  </div>
+</nav>
+<div id="deck" aria-live="polite">
+<!-- Cover -->
+<section class="slide cover" data-hook="streaks" data-title="Jakamo x Wunderdog – AI-native development" data-o="980,520">
+  <canvas class="streaks" width="1600" height="900"></canvas>
+  <div class="wm abs" style="left:83px;top:38px">WUNDERDOG</div>
+  <h1 class="cover-title"><b data-s="0" class="left">Jakamo x Wunderdog –</b><span data-s="0" class="left" style="--d:.25s">AI-native development</span></h1>
+  <div class="cover-meta fade" data-s="0" style="--d:.6s">One-day training</div>
+</section>
+
+<!-- Agenda -->
+<section class="slide content" data-title="Today" data-pace="500,350,350,350,350,350,350">
+  <h2 class="t">Today</h2>
+  <div class="body">
+    <div class="agenda">
+      <div class="it" data-s="0"><span class="tm">10:00</span><span class="no">01</span><span>Where AI really is today</span></div>
+      <div class="it" data-s="1"><span class="tm">10:30</span><span class="no">02</span><span>Agent setup: from request to guarantee</span></div>
+      <div class="it" data-s="2"><span class="tm">11:20</span><span class="no">03</span><span>Talking to the agent</span></div>
+      <div class="it" data-s="3" style="opacity:.55"><span class="tm">12:00</span><span class="no">–</span><span>Lunch</span></div>
+      <div class="it" data-s="4"><span class="tm">13:00</span><span class="no">04</span><span>Planning: precise intent</span></div>
+      <div class="it" data-s="5"><span class="tm">14:00</span><span class="no">05</span><span>Validation at scale</span></div>
+      <div class="it" data-s="6" style="border-color:var(--lime)"><span class="tm">15:00</span><span class="no lime">+</span><span>Optional hackathon<small>Build one check for your own team</small></span></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide divider" data-hook="streaks" data-title="01 Where AI is today" data-o="1180,600" data-dim="1">
+  <canvas class="streaks" width="1600" height="900"></canvas>
+  <div class="wm abs" style="left:83px;top:38px">WUNDERDOG</div>
+  <div class="div-num fade" data-s="0">01</div>
+  <h2 class="div-title" data-s="0" style="--d:.2s">Where AI is today</h2>
+</section>
+
+<!-- 1.1 Opening question -->
+<section class="slide content" data-title="How much faster does AI make a team?" data-pace="700,500,500,500,900">
+  <h2 class="t">How much faster does AI make a dev team?</h2>
+  <p class="desc fade" data-s="0">Vote with your fingers. One finger for 10%, four fingers for 10x.</p>
+  <div class="body" style="top:300px">
+    <div class="vote">
+      <div class="card" data-s="1"><div class="f">1 finger</div><div class="v sky">10%</div></div>
+      <div class="card" data-s="2"><div class="f">2 fingers</div><div class="v violet">50%</div></div>
+      <div class="card" data-s="3"><div class="f">3 fingers</div><div class="v orange">2x</div></div>
+      <div class="card" data-s="4"><div class="f">4 fingers</div><div class="v lime">10x</div></div>
+    </div>
+    <div class="statement fade" data-s="5" style="margin-top:60px;font-size:34px;color:var(--muted)">Remember the most common answer. We come back to it.</div>
+  </div>
+</section>
+
+<!-- 1.2 The hype -->
+<section class="slide content" data-title="The hype" data-pace="700,700,700,900">
+  <h2 class="t">The hype</h2>
+  <div class="body col" style="gap:30px;top:270px">
+    <div class="bubble left" data-s="0" style="max-width:none;font-size:46px">“10x engineers”</div>
+    <div class="bubble left" data-s="1" style="max-width:none;font-size:46px;margin-left:180px">“AI writes half of our code”</div>
+    <div class="bubble left" data-s="2" style="max-width:none;font-size:46px;margin-left:360px">“Build a product in a weekend”</div>
+    <div class="statement fade" data-s="3" style="margin-top:20px;color:var(--muted)">What happens when you measure it?</div>
+  </div>
+</section>
+
+<!-- 1.3 The data -->
+<section class="slide content" data-title="The data" data-pace="800,900">
+  <h2 class="t">The data</h2>
+  <div class="body">
+    <div class="row" style="gap:40px;margin-top:40px">
+      <div class="card" data-s="0" style="flex:1;padding:50px"><div class="big lime count" data-from="0" data-to="200000" data-dec="0">200000</div><div class="sub">engineers</div></div>
+      <div class="card" data-s="1" style="flex:1;padding:50px"><div class="big sky"><span class="count" data-from="0" data-to="400">400</span>+</div><div class="sub">companies</div></div>
+    </div>
+    <p class="fade" data-s="2" style="font-size:26px;color:var(--muted);margin-top:50px">DX, “The State of AI in Software Development”, AI Engineer 2026</p>
+  </div>
+</section>
+
+<!-- 1.4 The answer -->
+<section class="slide content" data-title="The answer" data-pace="600,1400,1400,1600">
+  <h2 class="t">The answer</h2>
+  <p class="desc fade" data-s="0">Change in PR throughput after AI tools</p>
+  <div class="body" style="top:320px">
+    <div class="hb">
+      <div class="lab fade" data-s="1">The hype</div><div class="tr" data-mv="1" style="--v:100%;--c:var(--dim)"><i></i></div><div class="val fade muted" data-s="1">10x</div>
+      <div class="lab fade" data-s="2">Best teams</div><div class="tr" data-mv="2" style="--v:19%;--c:var(--sky)"><i></i></div><div class="val fade sky" data-s="2">&lt; 2x</div>
+      <div class="lab fade" data-s="3">Median team</div><div class="tr" data-mv="3" style="--v:2.5%;--c:var(--orange)"><i></i></div><div class="val orange" data-s="3">+<span class="count" data-from="0" data-to="7.7" data-dec="1">7.7</span>%</div>
+    </div>
+    <div class="statement fade" data-s="4" style="margin-top:56px">Compare that with your vote.</div>
+  </div>
+</section>
+
+<!-- 1.5 Where the time goes -->
+<section class="slide content" data-title="Where the time goes" data-pace="900,1600,1600,1200">
+  <h2 class="t">Where the time goes</h2>
+  <div class="body" style="top:300px">
+    <div class="stages" data-s="0">
+      <div class="stg">Understand</div>
+      <div class="stg">Plan</div>
+      <div class="stg shrink" data-mv="1">Write code</div>
+      <div class="stg grow" data-mv="2">Review</div>
+      <div class="stg">Build</div>
+      <div class="stg">Deploy</div>
+    </div>
+    <ul class="b" style="margin-top:70px">
+      <li data-s="1">AI made writing code fast</li>
+      <li data-s="2">The rest of the work stayed the same. Review got bigger.</li>
+      <li data-s="3" class="lime">Writing code was never the slow part</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 1.6 Review is drowning -->
+<section class="slide content" data-title="Review is drowning" data-pace="900,1000,1000">
+  <h2 class="t">Review is drowning</h2>
+  <div class="body">
+    <div class="cards" style="--n:3;margin-top:30px">
+      <div class="card warn" data-s="0" style="min-height:330px"><div class="lbl">PR size</div><div class="big orange"><span class="count" data-from="44" data-to="72">72</span></div><p>lines per PR, up from 44. Bigger PRs are harder to review.</p></div>
+      <div class="card warn" data-s="1" style="min-height:330px"><div class="lbl">Deploys</div><h3 style="font-size:40px">More often, less stable</h3><p>Deployment frequency goes up. The change failure rate swings much more.</p></div>
+      <div class="card warn" data-s="2" style="min-height:330px"><div class="lbl">Confidence</div><h3 style="font-size:40px">Down</h3><p>Maintainability scores go up, but developers feel less sure their changes are safe.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 1.7 Usage is not efficiency -->
+<section class="slide content" data-title="Using more AI is not saving more time" data-pace="900,1400,1400,1000">
+  <h2 class="t">Using more AI ≠ saving more time</h2>
+  <div class="body" style="top:280px">
+    <div class="hb" style="grid-template-columns:330px 1fr 120px">
+      <div class="lab fade" data-s="0">Juniors<small>AI use</small></div><div class="tr" data-mv="1" style="--v:92%;--c:var(--orange)"><i></i></div><div></div>
+      <div class="lab fade" data-s="0">Staff+<small>AI use</small></div><div class="tr" data-mv="1" style="--v:48%;--c:var(--sky)"><i></i></div><div></div>
+      <div class="lab fade" data-s="2">Juniors<small>time saved</small></div><div class="tr" data-mv="2" style="--v:60%;--c:var(--lime)"><i></i></div><div></div>
+      <div class="lab fade" data-s="2">Staff+<small>time saved</small></div><div class="tr" data-mv="2" style="--v:60%;--c:var(--lime)"><i></i></div><div></div>
+    </div>
+    <div class="statement fade" data-s="3" style="margin-top:50px">Why do you think that is?</div>
+  </div>
+</section>
+
+<!-- 1.8 Good DX -->
+<section class="slide content" data-title="Good DX is good agent experience" data-pace="900,700,700,1100">
+  <h2 class="t">Good DX = good agent experience</h2>
+  <div class="body col" style="gap:40px">
+    <div class="row" data-s="0" style="gap:16px">
+      <span class="pill">Fast builds</span><span class="pill">Good tests</span><span class="pill">Clear rules</span><span class="pill">Written decisions</span>
+      <span class="muted" style="font-size:24px;align-self:center;margin-left:10px">help people and agents alike</span>
+    </div>
+    <div class="cards" style="--n:3">
+      <div class="card" data-s="1"><div class="k">Morgan Stanley</div><h3>~300,000 hours saved per year</h3></div>
+      <div class="card" data-s="2"><div class="k">Zapier</div><h3>15% more value per engineer, and still hiring</h3></div>
+      <div class="card" data-s="3"><div class="k">Spotify</div><h3>An agent that helps SREs with incidents</h3></div>
+    </div>
+  </div>
+</section>
+
+<!-- 1.9 Today's goal -->
+<section class="slide content" data-title="Today's goal" data-pace="900,1300,900,1100">
+  <h2 class="t">Today's goal</h2>
+  <div class="body">
+    <div class="split" data-s="0">
+      <div class="m"><span>Machines check the code</span><small>Is the code what it should be?</small><div class="ticks fade" data-s="1"><span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span><span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span><span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span><span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span><span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span></div></div>
+      <div class="h" data-s="2"><span>Humans check the intent</span><small>Is this the right thing to build?</small></div>
+    </div>
+    <div class="statement fade" data-s="3" style="margin-top:60px">Review stops being the bottleneck.</div>
+  </div>
+</section>
+
+<!-- 1.10 My project -->
+<section class="slide content" data-title="My project" data-pace="800,800,1500,1200">
+  <h2 class="t">My project</h2>
+  <div class="body">
+    <div class="row" style="gap:30px">
+      <div class="card" data-s="0" style="flex:1;padding:36px"><div class="big sky">~<span class="count" data-from="0" data-to="6000">6000</span></div><div class="sub">developers</div></div>
+      <div class="card" data-s="1" style="flex:1;padding:36px"><div class="big sky">~<span class="count" data-from="0" data-to="300">300</span></div><div class="sub">teams</div></div>
+      <div class="card hi" data-s="2" style="flex:1.4;padding:36px"><div class="big lime"><span class="count" data-from="1" data-to="4.6" data-dec="1">4.6</span>x</div><div class="sub">more output in my team, in an ultra-regulated environment</div></div>
+    </div>
+    <div class="hb fade" data-s="3" style="margin-top:44px;grid-template-columns:260px 1fr 140px;row-gap:18px">
+      <div class="lab">Median team</div><div class="tr mv" style="--v:2.3%;--c:var(--orange);height:30px"><i></i></div><div class="val orange" style="font-size:32px">+7.7%</div>
+      <div class="lab">My team</div><div class="tr mv" style="--v:100%;--c:var(--lime);height:30px"><i></i></div><div class="val lime" style="font-size:32px">4.6x</div>
+    </div>
+    <div class="statement fade" data-s="4" style="margin-top:30px;font-size:36px">Today I'll show you how.</div>
+  </div>
+</section>
+
+<section class="slide divider" data-hook="streaks" data-title="02 Agent setup" data-o="1240,420" data-dim="1">
+  <canvas class="streaks" width="1600" height="900"></canvas>
+  <div class="wm abs" style="left:83px;top:38px">WUNDERDOG</div>
+  <div class="div-num fade" data-s="0">02</div>
+  <h2 class="div-title" data-s="0" style="--d:.2s">Agent setup</h2>
+</section>
+
+<!-- 2.1 Same agent different results -->
+<section class="slide content" data-title="Same agent, different results" data-pace="800,1000,1000,1100">
+  <h2 class="t">Same agent, different results</h2>
+  <div class="body">
+    <div class="card prompt" data-s="0" style="margin-bottom:34px"><span class="lbl">Same model · same prompt</span><span>Add a phone number field to the user profile</span></div>
+    <div class="row" style="gap:40px">
+      <div class="card left" data-s="1" style="flex:1"><div class="lbl" style="margin-bottom:14px">Team A</div>
+        <div class="col" style="gap:12px;font-size:25px"><div><span class="mark no sm" role="img" aria-label="no"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></span> New validation helper, copied twice</div><div><span class="mark no sm" role="img" aria-label="no"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></span> No tests</div><div><span class="mark no sm" role="img" aria-label="no"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></span> Edited the migration by hand</div></div></div>
+      <div class="card right hi" data-s="2" style="flex:1"><div class="lbl" style="margin-bottom:14px">Team B</div>
+        <div class="col" style="gap:12px;font-size:25px"><div><span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span> Used the existing validator</div><div><span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span> Test for each case</div><div><span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span> Migration made with the team's skill</div></div></div>
+    </div>
+    <div class="statement fade" data-s="3" style="margin-top:44px">The difference is the setup.</div>
+  </div>
+</section>
+
+<!-- 2.2 From please to must -->
+<section class="slide content" data-title="From please to must" data-pace="600,500,500,500,500,1200">
+  <h2 class="t">From “please” to “must”</h2>
+  <div class="body" style="top:220px;bottom:40px">
+    <div class="ladder">
+      <div class="rail fade" data-s="0"><span class="t1">Claude decides</span><span class="t2">Claude Code enforces</span></div>
+      <div class="rung" data-s="1"><h3>Rules</h3><p>CLAUDE.md, loaded in every session</p></div>
+      <div class="rung" data-s="2"><h3>Specific rules</h3><p>Only for some files</p></div>
+      <div class="rung" data-s="3"><h3>Skills</h3><p>Step-by-step procedures</p></div>
+      <div class="rung" data-s="4"><h3>Subagents</h3><p>Custom helpers with their own tools</p></div>
+      <div class="rung" data-s="5"><h3>Hooks</h3><p>Run every time, no matter what</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2.3 Rules -->
+<section class="slide content" data-title="Rules (CLAUDE.md)" data-pace="800,900,900">
+  <h2 class="t">Rules</h2>
+  <div class="mini-ladder"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+  <div class="body" style="display:grid;grid-template-columns:1fr 560px;gap:50px">
+    <ul class="b" style="font-size:28px">
+      <li data-s="0">Loads in every session</li>
+      <li data-s="1">Only what Claude can't see in the code: commands, misleading places, team decisions, anything you corrected twice</li>
+      <li data-s="1" style="--d:.2s">Under 200 lines. <code>/init</code> to start, <code>/doctor prompt-audit</code> to clean</li>
+      <li data-s="2" class="orange">Claude may still skip a line</li>
+    </ul>
+    <div class="pane right" data-s="0"><div class="fileh">CLAUDE.md</div><div class="code sm"><span class="k"># Commands</span>
+- Test: dotnet test
+- One PHP file: vendor/bin/phpstan analyse src/X.php
+- Web types: pnpm tsc --noEmit
+
+<span class="k"># Conventions</span>
+- Use Result&lt;T&gt; from Core/Errors, never throw
+- legacy/ is live, don't copy its patterns
+
+<span class="k"># Gotchas</span>
+- Integration tests need the Azurite
+  emulator running</div></div>
+  </div>
+</section>
+
+<!-- 2.4 Specific rules -->
+<section class="slide content" data-title="Specific rules" data-pace="800,900,900,900">
+  <h2 class="t">Specific rules</h2>
+  <div class="mini-ladder"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+  <div class="body" style="display:grid;grid-template-columns:520px 1fr;gap:50px">
+    <div class="pane" data-s="0"><div class="tree">repo/
+├─ <span class="d">src/Api/</span>        <span class="g">.NET</span>
+├─ <span class="d">legacy/</span>         <span class="g">PHP</span>
+├─ <span class="d">web/</span>            <span class="g">Next.js</span>
+└─ <span class="d">.claude/rules/</span>
+   ├─ api.md
+   ├─ legacy.md
+   └─ web.md</div></div>
+    <div class="col" style="gap:20px">
+      <div class="pane" data-s="1"><div class="fileh">.claude/rules/api.md</div><div class="code sm"><span class="c">---</span>
+<span class="k">paths:</span>
+  - <span class="s">"src/Api/**/*.cs"</span>
+<span class="c">---</span>
+- Validate requests with FluentValidation
+- Every endpoint needs an integration test</div></div>
+      <ul class="b" style="font-size:26px">
+        <li data-s="2">Loads only when Claude works in those files</li>
+        <li data-s="3">Less noise, better focus. Still a request.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 2.5 Skills -->
+<section class="slide content" data-title="Skills" data-pace="800,1000,1000">
+  <h2 class="t">Skills</h2>
+  <div class="mini-ladder"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+  <div class="body">
+    <div class="row" style="gap:40px;align-items:stretch">
+      <div class="card" data-s="0" style="flex:1"><div class="lbl">At start: name + description</div>
+        <div class="code" style="margin-top:16px">name: add-ef-migration
+description: Add an EF Core migration
+  for a model change, and test it.</div></div>
+      <svg class="arrow fade" data-s="1" viewBox="0 0 52 20"><path d="M2 10h44M38 3l8 7-8 7"/></svg>
+      <div class="card hi" data-s="1" style="flex:1.3"><div class="lbl">When needed: the full steps</div>
+        <div class="code" style="margin-top:16px">1. Change the model in Domain/
+2. dotnet ef migrations add &lt;Name&gt;
+3. Read the generated file, no data loss
+4. Run the migration test
+5. Report the command output</div></div>
+    </div>
+    <ul class="b" style="margin-top:44px;font-size:28px">
+      <li data-s="2">Claude picks it up itself, or you start it with <code>/name</code></li>
+    </ul>
+  </div>
+</section>
+
+<!-- 2.6 Skill examples -->
+<section class="slide content" data-title="Skill examples" data-pace="700,700,700,1000">
+  <h2 class="t">Skill examples</h2>
+  <div class="mini-ladder"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+  <div class="body col" style="gap:34px">
+    <div class="cards" style="--n:3">
+      <div class="card" data-s="0"><div class="k">/add-ef-migration</div><h3>Add an EF Core migration</h3><p>Claude can start it</p></div>
+      <div class="card" data-s="1"><div class="k">/run-local</div><h3>Run the app locally</h3><p>API, PHP app and web app, with the right env</p></div>
+      <div class="card warn" data-s="2"><div class="k">/deploy-staging</div><h3>Deploy to Azure staging</h3><p><code>disable-model-invocation: true</code> → only a human can start it</p></div>
+    </div>
+    <div class="card" data-s="3"><div class="lbl" style="margin-bottom:12px">Test the description</div>
+      <div class="row" style="gap:40px;font-size:24px"><div><span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span> “add a column to Orders” → loads</div><div><span class="mark no sm" role="img" aria-label="no"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></span> “review this PR” → does not load</div></div></div>
+  </div>
+</section>
+
+<!-- 2.7 Subagents -->
+<section class="slide content" data-title="Subagents" data-pace="800,900,900,1000">
+  <h2 class="t">Subagents</h2>
+  <div class="mini-ladder"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
+  <div class="body" style="display:grid;grid-template-columns:1fr 600px;gap:50px">
+    <div class="col" style="gap:22px">
+      <div class="cards" style="--n:1;gap:16px">
+        <div class="card" data-s="0" style="padding:20px 26px"><h3 style="font-size:28px">.NET API security reviewer</h3></div>
+        <div class="card" data-s="0" style="padding:20px 26px;--d:.15s"><h3 style="font-size:28px">Migration checker</h3></div>
+        <div class="card" data-s="0" style="padding:20px 26px;--d:.3s"><h3 style="font-size:28px">Test writer</h3></div>
+      </div>
+      <ul class="b" style="font-size:25px">
+        <li data-s="2">Own context, own tools, one use case</li>
+        <li data-s="3">Not smarter. Focused and fresh. Costs extra tokens.</li>
+      </ul>
+    </div>
+    <div class="pane right" data-s="1"><div class="fileh">.claude/agents/security-reviewer.md</div><div class="code sm"><span class="c">---</span>
+<span class="k">name:</span> security-reviewer
+<span class="k">description:</span> Reviews .NET API changes
+  for auth and input problems.
+<span class="k">tools:</span> <span class="s">Read, Grep, Glob</span>
+<span class="c">---</span>
+You review code you didn't write.
+Report only real security problems.
+Skip style.</div>
+      <div class="fade" data-s="2" style="margin-top:18px;font-size:22px" ><span class="lime">tools: Read, Grep, Glob</span> = it can't edit. Enforced.</div></div>
+  </div>
+</section>
+
+<!-- 2.8 Hooks -->
+<section class="slide content" data-title="Hooks" data-pace="800,900,900,1200">
+  <h2 class="t">Hooks</h2>
+  <div class="mini-ladder"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+  <div class="body col" style="gap:26px">
+    <div class="cards" style="--n:3">
+      <div class="card" data-s="0"><div class="k">PostToolUse</div><h3>After every edit</h3><p><code>dotnet format</code> · <code>php-cs-fixer</code> · <code>prettier</code></p></div>
+      <div class="card warn" data-s="1"><div class="k">PreToolUse</div><h3>Before an edit</h3><p>Block edits to <code>Migrations/</code> and generated API clients</p></div>
+      <div class="card hi" data-s="2"><div class="k">Stop</div><h3>Before Claude finishes</h3><p>Tests must pass. Exit code 2 = keep working.</p></div>
+    </div>
+    <div class="term fade" data-s="3" style="font-size:20px"><span class="c">// .claude/settings.json</span>
+"PreToolUse": [{ "matcher": "Edit|Write",
+  "hooks": [{ "type": "command", "command": "./scripts/block-migrations.sh" }] }]</div>
+  </div>
+</section>
+
+<!-- 2.9 Keep guarantees few -->
+<section class="slide content" data-title="Keep guarantees few" data-pace="800,900,1000">
+  <h2 class="t">Keep guarantees few</h2>
+  <div class="body col" style="gap:40px">
+    <div class="vs">
+      <div class="card" data-s="0"><div class="lbl">Stays a rule</div><div class="txt">“Prefer named exports”<br><span class="muted" style="font-size:22px">Has exceptions. Let Claude judge.</span></div></div>
+      <div class="card hi" data-s="1"><div class="lbl good">Becomes a hook</div><div class="txt">“Never edit Migrations/ by hand”<br><span class="muted" style="font-size:22px">Zero exceptions. Enforce it.</span></div></div>
+    </div>
+    <div class="statement fade" data-s="2">More certain, but more to maintain. 40 hooks = mostly preferences.</div>
+  </div>
+</section>
+
+<!-- 2.10 MCP useful -->
+<section class="slide content" data-title="MCP: why it's useful" data-pace="800,500,500,500,1000">
+  <h2 class="t">MCP: why it's useful</h2>
+  <div class="body col" style="gap:34px">
+    <div class="cards" style="--n:4">
+      <div class="card" data-s="1"><h3>Azure DevOps</h3><p>Boards, work items</p></div>
+      <div class="card" data-s="2"><h3>Database</h3><p>Query real schemas</p></div>
+      <div class="card" data-s="3"><h3>Browser</h3><p>Click through the app</p></div>
+      <div class="card" data-s="4"><h3>Error tracking</h3><p>Read the real errors</p></div>
+    </div>
+    <ul class="b" style="font-size:28px">
+      <li data-s="0">Connects the agent to systems outside the repo</li>
+      <li data-s="5">Typed tools, sign-in with OAuth</li>
+      <li data-s="5" style="--d:.2s">Best for systems with no CLI, and tools you use often</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 2.11 MCP cons -->
+<section class="slide content" data-title="MCP: the cons" data-pace="800,900,900,900">
+  <h2 class="t">MCP: the cons</h2>
+  <div class="body">
+    <div class="cards" style="--n:2">
+      <div class="card warn" data-s="0"><div class="lbl">Context cost</div><h3><span class="count" data-from="0" data-to="550">550</span>–1,400 tokens per tool</h3><p>Loaded before any work. 3 servers ≈ 55,000 tokens.</p></div>
+      <div class="card warn" data-s="1"><div class="lbl">Reliability</div><h3>Remote servers time out</h3><p>One benchmark saw 28% failures on a remote server.</p></div>
+      <div class="card bad" data-s="2"><div class="lbl">Security</div><h3>Prompt injection</h3><p>Servers that read outside content can bring in hidden instructions.</p></div>
+      <div class="card" data-s="3"><div class="lbl">Trust</div><h3>Approve each server</h3><p>Turn off the ones you don't use.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2.12 MCP vs CLI -->
+<section class="slide content" data-title="MCP vs CLI: tokens" data-pace="600,1500,1500,1000">
+  <h2 class="t">MCP vs CLI: tokens</h2>
+  <p class="desc fade" data-s="0">Same task: check which languages a repo uses</p>
+  <div class="body" style="top:300px">
+    <div class="hb">
+      <div class="lab fade" data-s="1">MCP</div><div class="tr" data-mv="1" style="--v:100%;--c:var(--orange)"><i></i></div><div class="val orange" data-s="1"><span class="count" data-from="0" data-to="44026">44026</span></div>
+      <div class="lab fade" data-s="2">CLI</div><div class="tr" data-mv="2" style="--v:3.1%;--c:var(--lime)"><i></i></div><div class="val lime" data-s="2"><span class="count" data-from="0" data-to="1365">1365</span></div>
+    </div>
+    <div class="statement fade" data-s="3" style="margin-top:60px">CLI first: <span class="mono sky" style="font-size:38px">az</span>, <span class="mono sky" style="font-size:38px">gh</span>, <span class="mono sky" style="font-size:38px">dotnet</span>. MCP when there is no CLI.</div>
+  </div>
+  <div class="src-line">Scalekit benchmark via Apideck. Benchmarks show 4–32x more tokens with MCP.</div>
+</section>
+
+<!-- 2.13 Where the files live -->
+<section class="slide content" data-title="Where the files live" data-pace="800,800,800">
+  <h2 class="t">Where the files live</h2>
+  <div class="body">
+    <div class="scope">
+      <div class="card" data-s="0"><div class="who sky">Local · only you</div><h3>Your laptop</h3>
+        <ul><li>~/.claude/</li><li>CLAUDE.local.md</li><li>settings.local.json</li></ul>
+        <p>Personal preferences. A teammate never sees them.</p></div>
+      <div class="card hi" data-s="1"><div class="who lime">Repo · the team</div><h3>The repo</h3>
+        <ul><li>CLAUDE.md</li><li>.claude/rules · skills · agents</li><li>.claude/settings.json</li><li>.mcp.json</li></ul>
+        <p>Committed and reviewed in PRs, like code.</p></div>
+      <div class="card" data-s="2" style="border-color:var(--violet)"><div class="who violet">Central · the company</div><h3>One place</h3>
+        <ul><li>Managed settings</li><li>Company plugin marketplace</li><li>Org connectors</li></ul>
+        <p>One setup for 300 teams. Managed settings can't be overridden.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2.14 Local -->
+<section class="slide content" data-title="Local" data-pace="800,900">
+  <h2 class="t">Local: only you</h2>
+  <div class="body" style="display:grid;grid-template-columns:1fr 1fr;gap:50px">
+    <div class="pane" data-s="0"><div class="tree"><span class="d">~/.claude/</span>
+├─ CLAUDE.md          <span class="g">all your projects</span>
+├─ settings.json
+└─ skills/
+<span class="d">repo/</span>
+├─ CLAUDE.local.md    <span class="g">gitignored</span>
+└─ .claude/settings.local.json</div></div>
+    <ul class="b" style="font-size:28px">
+      <li data-s="0">Your style, your shortcuts, your allowed commands</li>
+      <li data-s="1">A teammate never gets it</li>
+      <li data-s="1" style="--d:.2s" class="orange">If the team needs it, it doesn't belong here</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 2.15 Repo -->
+<section class="slide content" data-title="Repo" data-pace="800,900">
+  <h2 class="t">Repo: the team</h2>
+  <div class="body" style="display:grid;grid-template-columns:1fr 1fr;gap:50px">
+    <div class="pane" data-s="0"><div class="tree"><span class="d">repo/</span>
+├─ CLAUDE.md
+├─ .mcp.json
+└─ <span class="d">.claude/</span>
+   ├─ settings.json   <span class="g">hooks, permissions</span>
+   ├─ rules/
+   ├─ skills/
+   └─ agents/</div></div>
+    <ul class="b" style="font-size:28px">
+      <li data-s="0">Committed, so everyone in the repo gets it</li>
+      <li data-s="1">Reviewed in PRs like code</li>
+      <li data-s="1" style="--d:.2s">Hooks and allow rules start after each person trusts the folder</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 2.16 Centralized -->
+<section class="slide content" data-title="Centralized" data-pace="800,900,900">
+  <h2 class="t">Central: the company</h2>
+  <div class="body col" style="gap:40px">
+    <div class="cards" style="--n:3">
+      <div class="card" data-s="0" style="border-color:var(--violet)"><h3>Managed settings</h3><p>From the admin console or MDM. Nobody can override them.</p></div>
+      <div class="card" data-s="1" style="border-color:var(--violet)"><h3>Plugin marketplace</h3><p>Shared skills, agents and hooks, installed by every team.</p></div>
+      <div class="card" data-s="1" style="border-color:var(--violet);--d:.15s"><h3>Org connectors</h3><p>MCP servers the company has approved.</p></div>
+    </div>
+    <div class="statement fade" data-s="2">One setup for 300 teams. The place for security policy.</div>
+  </div>
+</section>
+
+<!-- 2.17 Test the setup -->
+<section class="slide content" data-title="Your setup is code too: test it" data-pace="700,2400,1200">
+  <h2 class="t">Your setup is code too: test it</h2>
+  <div class="body col" style="gap:34px">
+    <div class="card prompt" data-s="0"><span class="lbl">Prompt</span><span>Add an EF Core migration for the phone field</span></div>
+    <div data-mv="1">
+      <div class="lane fade" data-s="1"><div class="name">Run 1</div><div class="track" style="--t:1.7s"><i></i></div>
+        <div class="verdict left" data-s="2"><span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span>Used the skill</div></div>
+      <div class="lane fade" data-s="1"><div class="name">Run 2</div><div class="track" style="--t:2.4s"><i></i></div>
+        <div class="verdict left" data-s="2" style="--d:.15s"><span class="mark no sm" role="img" aria-label="no"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></span>Wrote the migration by hand</div></div>
+      <div class="lane fade" data-s="1"><div class="name">Run 3</div><div class="track" style="--t:2s"><i></i></div>
+        <div class="verdict left" data-s="2" style="--d:.3s"><span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span>Used the skill</div></div>
+    </div>
+    <div class="statement" data-s="3">One good run proves nothing.</div>
+  </div>
+</section>
+
+<!-- 2.18 What an eval is -->
+<section class="slide content" data-title="What an eval is" data-pace="800">
+  <h2 class="t">What an eval is</h2>
+  <div class="body">
+    <div class="anat" style="margin-top:20px">
+      <div class="node" data-s="0"><div class="card"><div class="vis"><div class="doc"><i></i><i></i><i></i><i></i></div></div><h4>Task</h4><p>Input and what counts as success</p></div></div>
+      <svg class="arrow fade" data-s="1" viewBox="0 0 52 20"><path d="M2 10h44M38 3l8 7-8 7"/></svg>
+      <div class="node" data-s="1"><div class="card"><div class="vis"><div class="stack3"><b></b><b></b><b></b></div></div><h4>Trials</h4><p>Several runs of the same task</p></div></div>
+      <svg class="arrow fade" data-s="2" viewBox="0 0 52 20"><path d="M2 10h44M38 3l8 7-8 7"/></svg>
+      <div class="node" data-s="2"><div class="card"><div class="vis col" style="gap:10px;align-items:stretch;width:100%">
+          <span class="pill" style="justify-content:center">tests pass</span><span class="pill" style="justify-content:center">skill used</span><span class="pill" style="justify-content:center">rubric</span></div>
+        <h4>Graders</h4><p>Each checks one thing</p></div></div>
+      <svg class="arrow fade" data-s="3" viewBox="0 0 52 20"><path d="M2 10h44M38 3l8 7-8 7"/></svg>
+      <div class="node" data-s="3"><div class="card" style="border-color:var(--lime)"><div class="vis"><div class="score count" data-from="0" data-to="67" data-suffix="%">67%</div></div><h4>Score</h4><p>Pass rate across trials</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2.19 Grade the outcome -->
+<section class="slide content" data-title="Grade the outcome, not the claim" data-pace="1000,700,1200,1000">
+  <h2 class="t">Grade the outcome, not the claim</h2>
+  <div class="body">
+    <div class="row" style="gap:60px;align-items:center;position:relative">
+      <div class="col" style="flex:1;gap:14px">
+        <div class="lbl" data-s="0">What the agent says</div>
+        <div class="bubble left" data-s="0" style="font-size:36px;padding:36px 40px;min-height:140px">Fixed the flaky test. CI is green.</div>
+      </div>
+      <div class="col" style="flex:1;gap:14px">
+        <div class="lbl" data-s="1">What the repo says</div>
+        <div class="term right" data-s="1" style="font-size:24px;padding:30px 34px;min-height:140px"><span class="p">$</span> <span class="typing" data-s="1">dotnet test --filter Auth (x10)</span>
+<span data-s="2" class="fade" style="--d:.1s"><span class="lime">7 runs passed</span></span>
+<span data-s="2" class="fade" style="--d:.3s"><span class="red">3 runs failed: token expiry</span></span></div>
+      </div>
+      <div class="stamp" data-s="3" style="left:50%;top:118%">CLAIM ≠ OUTCOME</div>
+    </div>
+    <ul class="b" style="margin-top:120px;flex-direction:row;gap:60px;font-size:27px">
+      <li data-s="4">Check the end state</li>
+      <li data-s="4" style="--d:.15s">Code graders first: fast, cheap, same answer every time</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 2.20 Claude builds the evals -->
+<section class="slide content" data-title="Claude builds the evals for you" data-pace="900,900,1100,1300">
+  <h2 class="t">Claude builds the evals for you</h2>
+  <div class="body col" style="gap:26px">
+    <div class="term" data-s="0"><span class="p">$</span> <span class="typing" data-s="0">claude plugin eval init</span>
+<span class="fade c" data-s="1">  asks about your skill, drafts cases and graders, tries them once</span>
+<span class="p">$</span> <span class="typing" data-s="2">claude plugin eval .</span></div>
+    <div class="res fade" data-s="3" style="grid-template-columns:1.6fr .8fr .8fr .8fr">
+      <span class="h">case</span><span class="h">with</span><span class="h">without</span><span class="h">Δ</span>
+      <span>uses-migration-skill</span><span>1.00</span><span>0.33</span><span class="pos">+0.67</span>
+      <span>no-data-loss</span><span>1.00</span><span>0.67</span><span class="pos">+0.33</span>
+      <span>runs-migration-test</span><span>0.67</span><span>0.67</span><span class="zero">0.00</span>
+    </div>
+    <div class="fade" data-s="3" style="font-size:22px;color:var(--muted)">3 runs per case, with and without the skill · report.html in <span class="mono">evals/results/</span> · <span class="mono">--threshold</span> fails CI</div>
+  </div>
+</section>
+
+<!-- 2.21 Start small -->
+<section class="slide content" data-title="Start small, from real failures" data-pace="800,900,900">
+  <h2 class="t">Start small, from real failures</h2>
+  <div class="body col" style="gap:34px">
+    <div class="row" style="gap:16px;flex-wrap:wrap" data-s="0">
+      <span class="pill">Bug tracker</span><span class="pill">Review comments</span><span class="pill">Failed agent runs</span><span class="pill">Manual checks you already do</span>
+    </div>
+    <div class="row" style="gap:40px;align-items:center">
+      <div class="suite" data-s="1" style="width:360px"><div class="count" data-from="0" data-to="50">50</div><div style="font-size:24px">20–50 tasks is enough</div></div>
+      <ul class="b" style="font-size:27px;flex:1">
+        <li data-s="2">Measure with and without the skill: the difference is what it adds</li>
+        <li data-s="2" style="--d:.2s">Rerun on every setup change and every new model</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 2.22 Fix the eval -->
+<section class="slide content" data-title="Fix the eval, not just the agent" data-pace="900,1500,1000">
+  <h2 class="t">Fix the eval, not just the agent</h2>
+  <div class="body col" style="gap:40px">
+    <div class="jump" data-s="0"><span class="muted" style="font-size:30px;font-weight:400">Same model, same benchmark:</span><span class="orange">42%</span><span class="muted">→</span><span class="lime count" data-from="42" data-to="95" data-suffix="%">95%</span></div>
+    <div class="cards" style="--n:4" >
+      <div class="card" data-s="1"><h3>Clear tasks</h3><p>Two experts agree on pass or fail</p></div>
+      <div class="card" data-s="1" style="--d:.1s"><h3>Fair graders</h3><p>Not too strict</p></div>
+      <div class="card" data-s="1" style="--d:.2s"><h3>Clean runs</h3><p>No leftovers between trials</p></div>
+      <div class="card" data-s="1" style="--d:.3s"><h3>Read transcripts</h3><p>They show why it failed</p></div>
+    </div>
+    <div class="statement fade" data-s="2">A tested setup is what lets machines review the code.</div>
+  </div>
+</section>
+
+<section class="slide divider" data-hook="streaks" data-title="03 Talking to the agent" data-o="1100,640" data-dim="1">
+  <canvas class="streaks" width="1600" height="900"></canvas>
+  <div class="wm abs" style="left:83px;top:38px">WUNDERDOG</div>
+  <div class="div-num fade" data-s="0">03</div>
+  <h2 class="div-title" data-s="0" style="--d:.2s">Talking to the agent</h2>
+</section>
+
+<!-- 3.1 Tell it what it can't see -->
+<section class="slide content" data-title="Tell it what it can't see" data-pace="800,1200,1000">
+  <h2 class="t">Tell it what it can't see</h2>
+  <div class="body col" style="gap:30px">
+    <div class="vs">
+      <div class="card" data-s="0"><div class="lbl bad">Vague</div><div class="txt mono" style="font-size:30px">fix the login bug</div></div>
+      <div class="card hi" data-s="1"><div class="lbl good">Specific</div><div class="txt" style="font-size:26px">Login fails after the session times out. Look at token refresh in the .NET auth service. Write a failing test first, then fix it.</div></div>
+    </div>
+    <div class="row" style="gap:16px" data-s="2"><span class="pill">The file</span><span class="pill">The symptom</span><span class="pill">What “done” looks like</span></div>
+  </div>
+</section>
+
+<!-- 3.2 Hand it over -->
+<section class="slide content" data-title="Hand it over, and say how big" data-pace="700,700,700,1200">
+  <h2 class="t">Hand it over, and say how big</h2>
+  <div class="body col" style="gap:30px">
+    <div class="cards" style="--n:3">
+      <div class="card" data-s="0"><div class="k">@file</div><h3>Point to the file</h3><p><code>@src/Api/Auth/TokenService.cs</code></p></div>
+      <div class="card" data-s="1"><div class="k">screenshot</div><h3>Paste the broken page</h3><p>The Next.js page as the user sees it</p></div>
+      <div class="card" data-s="2"><div class="k">pipe</div><h3>Pipe in the log</h3><p><code>cat azure.log | claude -p "why?"</code></p></div>
+    </div>
+    <div class="card warn" data-s="3"><div class="lbl" style="margin-bottom:10px">Say how big</div><div style="font-size:27px">Claude builds the smallest thing that works. Say <span class="orange">“be ambitious”</span> when you want edge cases, empty states and error states too.</div></div>
+  </div>
+</section>
+
+<!-- 3.3 Ask for evidence -->
+<section class="slide content" data-title="Ask for evidence" data-pace="800,1300,1000">
+  <h2 class="t">Ask for evidence</h2>
+  <div class="body col" style="gap:30px">
+    <div class="term" data-s="0"><span class="c">&gt;</span> <span class="typing" data-s="0">Run dotnet test and keep going until it passes. Show me the command and its output.</span></div>
+    <div class="vs">
+      <div class="card" data-s="1"><div class="lbl bad">Not enough</div><div class="txt">“All tests pass.”</div></div>
+      <div class="card hi" data-s="1" style="--d:.2s"><div class="lbl good">Evidence</div><div class="txt mono" style="font-size:22px">$ dotnet test<br>Passed! Failed: 0, Passed: 214</div></div>
+    </div>
+    <div class="statement fade" data-s="2" style="font-size:36px">Reading the output is faster than running it again yourself.</div>
+  </div>
+</section>
+
+<!-- 3.4 Steer the session -->
+<section class="slide content" data-title="Steer the session" data-pace="800,700,700,700">
+  <h2 class="t">Steer the session</h2>
+  <div class="body col" style="gap:30px">
+    <div class="statement" data-s="0">Watch the first minute.</div>
+    <div class="cards" style="--n:3">
+      <div class="card" data-s="1"><div class="k">Esc</div><h3>Stop</h3><p>Stops Claude and keeps the work so far. Redirect.</p></div>
+      <div class="card" data-s="2"><div class="k">/rewind</div><h3>Go back</h3><p>Roll back the code, the chat or both to an earlier prompt.</p></div>
+      <div class="card warn" data-s="3"><div class="k">/clear</div><h3>Start over</h3><p>Between tasks, and after two failed corrections.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3.5 Call skills directly -->
+<section class="slide content" data-title="Call skills directly" data-pace="800,900,900">
+  <h2 class="t">Call skills directly</h2>
+  <div class="body col" style="gap:30px">
+    <div class="term" data-s="0" style="font-size:26px"><span class="c">&gt;</span> <span class="typing" data-s="0">/implement JIRA-ISSUE-{YYYY}</span>
+<span class="c">&gt;</span> <span class="typing" data-s="1">/design 3 user profile management section examples</span></div>
+    <div class="cards" style="--n:3">
+      <div class="card" data-s="2"><h3>Short</h3><p>One command replaces a long prompt</p></div>
+      <div class="card" data-s="2" style="--d:.15s"><h3>Same steps every time</h3><p>Read the ticket, plan, build, test, open the PR</p></div>
+      <div class="card hi" data-s="2" style="--d:.3s"><h3>Easier to review</h3><p>Same for juniors and seniors. Results look the same.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3.6 Myth or still true -->
+<section class="slide content" data-title="Myth or still true?" data-pace="800,500,500,500,1200">
+  <h2 class="t">Myth or still true?</h2>
+  <p class="desc fade" data-s="0">Vote: thumbs up = still true, thumbs down = myth</p>
+  <div class="body" style="top:280px">
+    <div class="myth">
+      <div class="card" data-s="1"><p>Write IMPORTANT in CAPS so Claude follows the rule</p><div class="verdict fade" data-s="5">Myth</div></div>
+      <div class="card" data-s="2"><p>Say “think harder” for a better answer</p><div class="verdict fade" data-s="5" style="--d:.15s">Myth</div></div>
+      <div class="card" data-s="3"><p>Tell it “don't be lazy, keep going”</p><div class="verdict fade" data-s="5" style="--d:.3s">Myth</div></div>
+      <div class="card" data-s="4"><p>Describe your architecture in CLAUDE.md</p><div class="verdict fade" data-s="5" style="--d:.45s">Myth</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide divider" data-hook="streaks" data-title="04 Planning" data-o="1180,600" data-dim="1">
+  <canvas class="streaks" width="1600" height="900"></canvas>
+  <div class="wm abs" style="left:83px;top:38px">WUNDERDOG</div>
+  <div class="div-num fade" data-s="0">04</div>
+  <h2 class="div-title" data-s="0" style="--d:.2s">Planning</h2>
+</section>
+
+<!-- 4.1 We trust the code -->
+<section class="slide content" data-title="We trust the code. Now what?" data-pace="800,1100,1100">
+  <h2 class="t">We trust the code. Now what?</h2>
+  <div class="body col" style="gap:40px">
+    <div class="split" style="height:240px" data-s="0">
+      <div class="m"><span>Code</span><small>Checked by machines (part 2)</small><div class="ticks"><span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span><span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span><span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span></div></div>
+      <div class="h"><span>Intent</span><small>Nothing checks it yet</small><div class="fade" data-s="1" style="font-size:60px;color:var(--orange)">?</div></div>
+    </div>
+    <div class="statement fade" data-s="2">So we start with discovery, then plan. Intent is what we prove and validate.</div>
+  </div>
+</section>
+
+<!-- 4.2 Road sign -->
+<section class="slide content" data-title="A road sign to oblivion" data-pace="900,1400">
+  <div class="body center-col" style="top:120px">
+    <div class="quote" data-s="0">A plan without ultra-precise acceptance criteria is not a plan.</div>
+    <div class="quote fade" data-s="1" style="margin-top:30px;color:var(--orange)">It's a road sign to oblivion.</div>
+    <div class="sub fade" data-s="2" style="margin-top:50px">The agent can't build what can't be verified.</div>
+  </div>
+</section>
+
+<!-- 4.3 Vague vs precise -->
+<section class="slide content" data-title="Vague AC vs precise AC" data-pace="800,1300,1300">
+  <h2 class="t">Vague AC vs precise AC</h2>
+  <div class="body">
+    <div class="vs" style="grid-template-columns:420px 1fr">
+      <div class="card" data-s="0"><div class="lbl bad">Vague</div><div class="txt" style="font-size:32px">“User can update their profile.”</div></div>
+      <div class="card hi" style="gap:18px" data-s="1"><div class="lbl good">Precise: one behavior each</div>
+        <div class="ac"><b>AC1</b>Given a logged-in user, when they save a phone number that isn't in E.164 format, then the save is blocked and the field shows “Invalid phone number”.</div>
+        <div class="ac fade" data-s="2"><b>AC2</b>Given a logged-in user, when they save their profile more than 2 times within 1 second, then the third save is rejected with HTTP 429.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4.4 What makes an AC precise -->
+<section class="slide content" data-title="What makes an AC precise" data-pace="600,500,500,500,500,1100">
+  <h2 class="t">What makes an AC precise</h2>
+  <div class="body" style="display:grid;grid-template-columns:1fr 1fr;gap:20px 50px;align-content:start">
+    <div class="q" data-s="0"><span class="ic" style="background:var(--lime)">1</span>One behavior per AC</div>
+    <div class="q" data-s="1"><span class="ic" style="background:var(--lime)">2</span>Concrete values, not adjectives</div>
+    <div class="q" data-s="2"><span class="ic" style="background:var(--lime)">3</span>Error cases and permissions included</div>
+    <div class="q" data-s="3"><span class="ic" style="background:var(--lime)">4</span>Out of scope written down</div>
+    <div class="q" data-s="4" style="grid-column:1/-1"><span class="ic" style="background:var(--lime)">5</span>Two people would agree on pass or fail</div>
+    <div class="statement fade" data-s="5" style="grid-column:1/-1;margin-top:30px;color:var(--orange)">If you can't write the test, the AC isn't done.</div>
+  </div>
+</section>
+
+<!-- 4.5 Must never ACs -->
+<section class="slide content" data-title="Must never ACs" data-pace="800,800,800,800,1200">
+  <h2 class="t">“Must never” ACs</h2>
+  <p class="desc fade" data-s="0">Examples say what should happen. Rules say what must never happen.</p>
+  <div class="body" style="top:290px">
+    <div class="cards" style="--n:3">
+      <div class="card" data-s="1"><div class="k">always equal</div><h3>Cart total = sum of its lines</h3></div>
+      <div class="card" data-s="2"><div class="k">never below</div><h3>A balance never goes negative</h3></div>
+      <div class="card" data-s="3"><div class="k">twice = once</div><h3>Saving twice gives the same result as once</h3></div>
+    </div>
+    <div class="card hi" data-s="4" style="margin-top:30px;font-size:26px">A <b class="lime">property test</b> makes up thousands of inputs and tries to break the rule. When it finds one, it shrinks it to the smallest failing case.</div>
+  </div>
+</section>
+
+<!-- 4.6 Planning starts with discovery -->
+<section class="slide content" data-title="Planning starts with discovery" data-pace="900,1200">
+  <h2 class="t">Planning starts with discovery</h2>
+  <div class="body col" style="gap:50px">
+    <div class="cf" style="margin-top:30px">
+      <div class="card hi" data-s="0"><div class="k">1</div><h4>Discovery</h4><p class="muted" style="margin:0;font-size:22px">Evidence and questions</p></div>
+      <svg class="arrow fade" data-s="0" viewBox="0 0 52 20"><path d="M2 10h44M38 3l8 7-8 7"/></svg>
+      <div class="card" data-s="0" style="--d:.2s"><div class="k">2</div><h4>Precise ACs</h4></div>
+      <svg class="arrow fade" data-s="1" viewBox="0 0 52 20"><path d="M2 10h44M38 3l8 7-8 7"/></svg>
+      <div class="card" data-s="1"><div class="k">3</div><h4>Plan</h4></div>
+      <svg class="arrow fade" data-s="1" viewBox="0 0 52 20"><path d="M2 10h44M38 3l8 7-8 7"/></svg>
+      <div class="card" data-s="1" style="--d:.2s"><div class="k">4</div><h4>Build</h4></div>
+    </div>
+    <div class="statement fade" data-s="2">If the ACs aren't crystal clear for the agent, no plan can be made.</div>
+  </div>
+</section>
+
+<!-- 4.7 Discovery agent -->
+<section class="slide content" data-title="The discovery agent gathers evidence" data-pace="900,400,400,400,400,400,400,400,1200">
+  <h2 class="t">The discovery agent gathers evidence</h2>
+  <div class="body">
+    <div class="funnel" style="grid-template-columns:440px 1fr 380px;height:540px">
+      <div class="src" style="gap:12px">
+        <div class="card" data-s="1" style="padding:12px 22px;font-size:24px"><i></i>Jira ticket + linked issues</div>
+        <div class="card" data-s="2" style="padding:12px 22px;font-size:24px"><i style="background:var(--sky)"></i>ADRs: decisions made</div>
+        <div class="card" data-s="3" style="padding:12px 22px;font-size:24px"><i style="background:var(--sky)"></i>C4: system boundaries</div>
+        <div class="card" data-s="4" style="padding:12px 22px;font-size:24px"><i></i>Existing code</div>
+        <div class="card" data-s="5" style="padding:12px 22px;font-size:24px"><i></i>Past PRs</div>
+        <div class="card" data-s="6" style="padding:12px 22px;font-size:24px"><i></i>Azure logs</div>
+        <div class="card" data-s="7" style="padding:12px 22px;font-size:24px"><i></i>Designs</div>
+      </div>
+      <svg class="flow" data-mv="8" viewBox="0 0 400 540" preserveAspectRatio="none" style="width:100%;height:540px">
+        <path d="M0 40 C200 40 200 270 400 270"/><path d="M0 115 C200 115 200 270 400 270"/><path d="M0 190 C200 190 200 270 400 270"/><path d="M0 270 L400 270"/><path d="M0 345 C200 345 200 270 400 270"/><path d="M0 420 C200 420 200 270 400 270"/><path d="M0 495 C200 495 200 270 400 270"/>
+        <path class="dash" d="M0 40 C200 40 200 270 400 270"/><path class="dash" d="M0 190 C200 190 200 270 400 270"/><path class="dash" d="M0 345 C200 345 200 270 400 270"/><path class="dash" d="M0 495 C200 495 200 270 400 270"/>
+      </svg>
+      <div class="suite" data-s="0"><div style="font-size:30px;font-weight:700">Discovery agent</div><div style="font-size:22px;color:var(--muted);margin-top:12px">Read-only tools.<br>Every AC backed by evidence, not guesses.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4.8 Then it questions you -->
+<section class="slide content" data-title="Then it questions you" data-pace="800,1200,1000,1200,1000">
+  <h2 class="t">Then it questions you</h2>
+  <div class="body">
+    <div class="chat">
+      <div class="msgb ag" data-s="0">The ticket says “phone number”. The ADR-012 says we store all contact data in E.164. Which numbers must be accepted?
+        <div class="opts"><span>Finnish only</span><span class="pick">Any E.164</span><span>Anything with digits</span></div></div>
+      <div class="msgb hu" data-s="1">Any E.164.</div>
+      <div class="msgb ag" data-s="2">What happens on a fast double-click on Save? Past PR #482 had duplicate writes here.
+        <div class="opts"><span>Ignore</span><span class="pick">Limit: 2 saves per second</span><span>Disable the button</span></div></div>
+      <div class="msgb hu" data-s="3">Limit to 2 per second, the third gets 429.</div>
+    </div>
+    <div class="fade" data-s="4" style="margin-top:22px;font-size:22px;color:var(--lime)">Every answer is saved as a decision →  AC1, AC2</div>
+  </div>
+</section>
+
+<!-- 4.9 /discover -->
+<section class="slide content" data-title="Example: /discover JIRA-1234" data-pace="700,700,700,700,700,900">
+  <h2 class="t">Example: <span class="mono" style="font-size:52px">/discover JIRA-1234</span></h2>
+  <div class="body">
+    <div class="pipe" style="margin-top:60px" data-mv="1">
+      <div class="nd" style="--i:0"><div class="o">1</div><h4>Fetch</h4><p>the ticket</p></div>
+      <div class="nd" style="--i:1"><div class="o">2</div><h4>Read</h4><p>ADRs, C4, code, PRs</p></div>
+      <div class="nd" style="--i:2"><div class="o">3</div><h4>List gaps</h4><p>and conflicts</p></div>
+      <div class="nd agent" style="--i:3"><div class="o">4</div><h4>Ask</h4><p>until precise</p></div>
+      <div class="nd" style="--i:4"><div class="o">5</div><h4>Write</h4><p>the ACs file</p></div>
+      <span class="tok"></span>
+    </div>
+  </div>
+</section>
+
+<!-- 4.10 The ACs file -->
+<section class="slide content" data-title="The output: the ACs file" data-pace="800,900">
+  <h2 class="t">The output: the ACs file</h2>
+  <div class="body" style="display:grid;grid-template-columns:1fr 440px;gap:50px">
+    <div class="pane" data-s="0"><div class="fileh">plans/JIRA-1234/acs.md</div><div class="code sm"><span class="k">## AC1</span> Phone must be E.164
+Given a logged-in user, when they save a phone
+number that isn't E.164, then the save is blocked
+and the field shows "Invalid phone number".
+<span class="c">Evidence: ADR-012 · Decision: any E.164 (Mikko)</span>
+
+<span class="k">## AC2</span> Save rate limit
+... the third save within 1 s gets HTTP 429.
+<span class="c">Evidence: PR #482 · Decision: 2 per second</span>
+
+<span class="k">## Must never</span>
+- A saved phone is never stored in another format
+
+<span class="k">## Out of scope</span>
+- SMS verification</div></div>
+    <ul class="b" style="font-size:27px">
+      <li data-s="0">Each AC with evidence and decisions</li>
+      <li data-s="0" style="--d:.15s">“Must never” rules</li>
+      <li data-s="0" style="--d:.3s">Out of scope</li>
+      <li data-s="1" class="lime">This file is the intent</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 4.11 From ACs to plan -->
+<section class="slide content" data-title="From ACs to plan" data-pace="800,1000,1000">
+  <h2 class="t">From ACs to plan</h2>
+  <div class="body col" style="gap:30px">
+    <div class="term" data-s="0"><span class="p">$</span> <span class="typing" data-s="0">claude --permission-mode plan</span></div>
+    <ul class="b" style="font-size:28px">
+      <li data-s="1">Plan mode: Claude can't edit files until you approve</li>
+      <li data-s="2">Every step in the plan points to the AC it serves</li>
+    </ul>
+    <div class="pane fade" data-s="2"><div class="code sm">1. Add E.164 validator to ProfileRequestValidator   <span class="s">→ AC1</span>
+2. Show "Invalid phone number" in ProfileForm.tsx  <span class="s">→ AC1</span>
+3. Add rate limit policy "profile-save"             <span class="s">→ AC2</span></div></div>
+  </div>
+</section>
+
+<!-- 4.12 Sequence diagram -->
+<section class="slide content" data-title="Sequence diagram of the solution" data-pace="700,700,700,700,700,700,1100">
+  <h2 class="t">Sequence diagram of the solution</h2>
+  <div class="body seq" style="top:200px;bottom:40px">
+    <svg viewBox="0 0 1434 600">
+      <g class="fade" data-s="0">
+        <rect class="actor" x="20" y="0" width="220" height="56" rx="10"/><text x="130" y="36" text-anchor="middle" font-size="22">User</text>
+        <rect class="actor" x="420" y="0" width="220" height="56" rx="10"/><text x="530" y="36" text-anchor="middle" font-size="22">Web (Next.js)</text>
+        <rect class="actor" x="820" y="0" width="220" height="56" rx="10"/><text x="930" y="36" text-anchor="middle" font-size="22">API (.NET)</text>
+        <rect class="actor" x="1200" y="0" width="220" height="56" rx="10"/><text x="1310" y="36" text-anchor="middle" font-size="22">Azure SQL</text>
+        <line class="life" x1="130" y1="56" x2="130" y2="600"/><line class="life" x1="530" y1="56" x2="530" y2="600"/><line class="life" x1="930" y1="56" x2="930" y2="600"/><line class="life" x1="1310" y1="56" x2="1310" y2="600"/>
+      </g>
+      <g class="fade" data-s="1"><path class="msg" d="M130 110 H520 M508 103 l12 7 -12 7"/><text class="lab" x="150" y="100">Save profile</text></g>
+      <g class="fade" data-s="2"><path class="msg" d="M530 170 H920 M908 163 l12 7 -12 7"/><text class="lab" x="550" y="160">PUT /profile</text></g>
+      <g class="fade" data-s="3"><path class="msg err" d="M930 230 H540 M552 223 l-12 7 12 7"/><text class="lab" x="560" y="220">400 not E.164</text><text class="ac" x="950" y="235">AC1</text>
+        <path class="ret" d="M530 270 H140 M152 263 l-12 7 12 7"/><text class="lab" x="160" y="262">“Invalid phone number”</text></g>
+      <g class="fade" data-s="4"><path class="msg err" d="M930 340 H540 M552 333 l-12 7 12 7"/><text class="lab" x="560" y="330">429 third save in 1 s</text><text class="ac" x="950" y="345">AC2</text></g>
+      <g class="fade" data-s="5"><path class="msg" d="M930 420 H1300 M1288 413 l12 7 -12 7"/><text class="lab" x="950" y="410">UPDATE Users SET Phone</text>
+        <path class="ret" d="M1310 480 H940 M952 473 l-12 7 12 7"/><path class="ret" d="M930 540 H540 M552 533 l-12 7 12 7"/><text class="lab" x="560" y="530">200 OK</text></g>
+    </svg>
+  </div>
+  <div class="src-line fade" data-s="6" style="color:var(--muted);font-size:22px">As detailed as possible: every actor, call, write and error path. Each step maps to an AC. Gaps show up as missing arrows.</div>
+</section>
+
+<!-- 4.13 The plan names the files -->
+<section class="slide content" data-title="The plan names the files" data-pace="800,900">
+  <h2 class="t">The plan names the files</h2>
+  <div class="body">
+    <div class="tbl" style="--cols:1.4fr 120px 1.2fr 110px" data-s="0">
+      <div class="h">File</div><div class="h">Change</div><div class="h">What</div><div class="h">AC</div>
+      <div class="m">Api/Profile/ProfileRequestValidator.cs</div><div>edit</div><div>E.164 rule</div><div>AC1</div>
+      <div class="m">web/profile/ProfileForm.tsx</div><div>edit</div><div>Error message</div><div>AC1</div>
+      <div class="m">Api/Program.cs</div><div>edit</div><div>Rate limit policy</div><div>AC2</div>
+      <div class="m lime">Api.Tests/ProfilePhoneTests.cs</div><div class="lime">new</div><div>Test per AC</div><div>AC1, AC2</div>
+      <div class="m lime">Api.Tests/PhoneProperties.cs</div><div class="lime">new</div><div>Property test</div><div>Must never</div>
+      <div class="m lime">web/e2e/profile.spec.ts</div><div class="lime">new</div><div>E2E main flow</div><div>AC1</div>
+    </div>
+    <div class="statement fade" data-s="1" style="margin-top:30px;font-size:34px">Files changed + files created. One test per AC.</div>
+  </div>
+</section>
+
+<!-- 4.14 Drift guard -->
+<section class="slide content" data-title="The file list is a drift guard" data-pace="900,1000,1000">
+  <h2 class="t">The file list is a drift guard</h2>
+  <div class="body col" style="gap:20px">
+    <div class="check" data-s="0" style="border-top:0"><span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span><span class="mono" style="font-size:22px">ProfileRequestValidator.cs</span><span class="muted">in the plan</span></div>
+    <div class="check" data-s="0" style="--d:.15s"><span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span><span class="mono" style="font-size:22px">ProfileForm.tsx</span><span class="muted">in the plan</span></div>
+    <div class="check" data-s="1"><span class="mark sm" style="background:var(--orange)">!</span><span class="mono" style="font-size:22px">Shared/StringUtils.cs</span><span class="orange">not in the plan → question</span></div>
+    <div class="check" data-s="2"><span class="mark no sm" role="img" aria-label="no"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></span><span class="mono" style="font-size:22px">PhoneProperties.cs</span><span class="red">missing → “must never” rule not covered</span></div>
+    <div class="statement fade" data-s="2" style="margin-top:30px;font-size:34px">Mechanical, so machines check it (part 5).</div>
+  </div>
+</section>
+
+<!-- 4.15 Tests come from intent -->
+<section class="slide content" data-title="Tests come from the intent, not the code" data-pace="900,1200,1000">
+  <h2 class="t">Tests come from the intent, not the code</h2>
+  <div class="body col" style="gap:40px">
+    <div class="vs">
+      <div class="card bad" data-s="0"><div class="lbl bad">Same agent writes both</div><div class="txt" style="font-size:26px">Feature and test share the same misunderstanding. Both pass. Both are wrong.</div></div>
+      <div class="card hi" data-s="1"><div class="lbl good">Our way</div><div class="txt" style="font-size:26px">Tests come from the human-approved ACs, before any code exists.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4.16 Humans review intent here -->
+<section class="slide content" data-title="Humans review intent here" data-pace="800,700,700,1100">
+  <h2 class="t">Humans review intent here</h2>
+  <div class="body col" style="gap:40px">
+    <div class="cards" style="--n:3">
+      <div class="card hi" data-s="0"><h3><span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span> The ACs</h3></div>
+      <div class="card hi" data-s="1"><h3><span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span> The sequence diagram</h3></div>
+      <div class="card hi" data-s="2"><h3><span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span> The plan</h3></div>
+    </div>
+    <div class="hb fade" data-s="3" style="grid-template-columns:330px 1fr 200px;row-gap:22px">
+      <div class="lab">Fix intent in the plan</div><div class="tr mv" style="--v:6%;--c:var(--lime);height:30px"><i></i></div><div class="val lime" style="font-size:30px">minutes</div>
+      <div class="lab">Fix intent in a PR</div><div class="tr mv" style="--v:100%;--c:var(--red);height:30px"><i></i></div><div class="val red" style="font-size:30px">days</div>
+    </div>
+  </div>
+</section>
+
+<!-- 4.17 Build in a fresh session -->
+<section class="slide content" data-title="Build in a fresh session" data-pace="800,1000">
+  <h2 class="t">Build in a fresh session</h2>
+  <div class="body col" style="gap:34px">
+    <div class="cf">
+      <div class="card" data-s="0"><div class="k">commit</div><h4>plans/JIRA-1234/</h4><p class="muted" style="margin:0;font-size:21px">acs.md · sequence.md · plan.md</p></div>
+      <svg class="arrow fade" data-s="1" viewBox="0 0 52 20"><path d="M2 10h44M38 3l8 7-8 7"/></svg>
+      <div class="card" data-s="1"><div class="k">/clear</div><h4>New session</h4><p class="muted" style="margin:0;font-size:21px">clean context</p></div>
+      <svg class="arrow fade" data-s="1" viewBox="0 0 52 20"><path d="M2 10h44M38 3l8 7-8 7"/></svg>
+      <div class="card hi" data-s="1" style="--d:.2s"><div class="k">run</div><h4 class="mono" style="font-size:26px">/implement JIRA-1234</h4></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4.18 Recap -->
+<section class="slide content" data-title="Planning recap" data-pace="400,400,400,400,400,400,1200">
+  <h2 class="t">Recap</h2>
+  <div class="body">
+    <div class="cf" style="margin-top:40px">
+      <div class="card" data-s="0" style="padding:22px 14px"><h4>Evidence</h4></div><svg class="arrow fade" data-s="1" viewBox="0 0 52 20"><path d="M2 10h44M38 3l8 7-8 7"/></svg>
+      <div class="card" data-s="1" style="padding:22px 14px"><h4>Questions</h4></div><svg class="arrow fade" data-s="2" viewBox="0 0 52 20"><path d="M2 10h44M38 3l8 7-8 7"/></svg>
+      <div class="card" data-s="2" style="padding:22px 14px"><h4>Precise ACs</h4></div><svg class="arrow fade" data-s="3" viewBox="0 0 52 20"><path d="M2 10h44M38 3l8 7-8 7"/></svg>
+      <div class="card" data-s="3" style="padding:22px 14px"><h4>Sequence diagram</h4></div><svg class="arrow fade" data-s="4" viewBox="0 0 52 20"><path d="M2 10h44M38 3l8 7-8 7"/></svg>
+      <div class="card" data-s="4" style="padding:22px 14px"><h4>Plan with files and tests</h4></div><svg class="arrow fade" data-s="5" viewBox="0 0 52 20"><path d="M2 10h44M38 3l8 7-8 7"/></svg>
+      <div class="card hi" data-s="5" style="padding:22px 14px"><h4>Approved intent</h4></div><svg class="arrow fade" data-s="6" viewBox="0 0 52 20"><path d="M2 10h44M38 3l8 7-8 7"/></svg>
+      <div class="card" data-s="6" style="padding:22px 14px"><h4>Build</h4></div>
+    </div>
+    <div class="statement fade" data-s="6" style="margin-top:60px">Next: how machines check the result.</div>
+  </div>
+</section>
+
+<section class="slide divider" data-hook="streaks" data-title="05 Validation at scale" data-o="1240,420" data-dim="1">
+  <canvas class="streaks" width="1600" height="900"></canvas>
+  <div class="wm abs" style="left:83px;top:38px">WUNDERDOG</div>
+  <div class="div-num fade" data-s="0">05</div>
+  <h2 class="div-title" data-s="0" style="--d:.2s">Validation at scale</h2>
+</section>
+
+<!-- 5.1 Where we are -->
+<section class="slide content" data-title="Where we are" data-pace="700,700,700,1200">
+  <h2 class="t">Where we are</h2>
+  <div class="body col" style="gap:40px">
+    <div class="cards" style="--n:3">
+      <div class="card hi" data-s="0"><h3><span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span> Setup trusted</h3><p>Part 2</p></div>
+      <div class="card hi" data-s="1"><h3><span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span> Intent approved</h3><p>Part 4</p></div>
+      <div class="card" data-s="2"><h3>Code being written</h3><p>by the agent</p></div>
+    </div>
+    <div class="statement fade" data-s="3">How do we know the result matches the intent, without reading every line?</div>
+  </div>
+</section>
+
+<!-- 5.2 Two review layers -->
+<section class="slide content" data-title="Two review layers" data-pace="900,1000,1100">
+  <h2 class="t">Two review layers</h2>
+  <div class="body">
+    <div class="layers">
+      <div class="card hi" data-s="0"><div class="lbl">Layer 1</div><h3>In the implementation loop</h3><p class="muted" style="margin:0;font-size:24px">Every turn, while the agent works</p></div>
+      <div class="card" data-s="1" style="border-color:var(--violet)"><div class="lbl">Layer 2</div><h3>At the PR</h3><p class="muted" style="margin:0;font-size:24px">Before merge</p></div>
+    </div>
+    <div class="statement fade" data-s="2" style="margin-top:40px">Most problems should die in layer 1.</div>
+  </div>
+</section>
+
+<!-- 5.3 Static checks -->
+<section class="slide content" data-title="Static checks while the agent works" data-pace="800,800,800,1100">
+  <h2 class="t">Static checks while the agent works</h2>
+  <div class="body col" style="gap:30px">
+    <div class="cards" style="--n:3">
+      <div class="card" data-s="0"><div class="k">.NET</div><h3>Analyzers</h3><p>Nullable on, warnings as errors</p></div>
+      <div class="card" data-s="1"><div class="k">PHP</div><h3>PHPStan</h3><p>Highest level you can reach</p></div>
+      <div class="card" data-s="2"><div class="k">Next.js</div><h3><code>tsc</code> + ESLint</h3><p>Strict mode</p></div>
+    </div>
+    <div class="card hi" data-s="3" style="font-size:26px">Hooks and the Stop hook run them on every change. The agent fixes them before anyone sees the code.</div>
+  </div>
+</section>
+
+<!-- 5.4 Dead code complexity duplication -->
+<section class="slide content" data-title="Dead code, complexity, duplication" data-pace="800,900,900">
+  <h2 class="t">Dead code, complexity, duplication</h2>
+  <div class="body col" style="gap:30px">
+    <div class="statement" data-s="0" style="font-size:38px">Agents write more code than needed.</div>
+    <div class="vs">
+      <div class="card" data-s="1"><div class="lbl">TypeScript / JavaScript</div><div class="txt"><b>Fallow</b> finds unused code, copy-paste and complexity hotspots</div></div>
+      <div class="card" data-s="2"><div class="lbl">.NET / PHP</div><div class="txt">The same checks, written into the review skill</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5.5 AC validation in the loop -->
+<section class="slide content" data-title="AC validation in the loop" data-pace="800,900,900,1100">
+  <h2 class="t">AC validation in the loop</h2>
+  <div class="body col" style="gap:30px">
+    <div class="layers" style="grid-template-columns:1fr 1fr">
+      <div class="card" data-s="0" style="min-height:280px"><div class="lbl">Check 1</div><h3>The tests</h3>
+        <ul class="b"><li>One test per AC</li><li>Property tests for “must never”</li><li>E2E for the main flow</li></ul></div>
+      <div class="card" data-s="1" style="min-height:280px"><div class="lbl">Check 2</div><h3>The implementation</h3>
+        <ul class="b"><li>Checked against each AC</li><li>Nothing missing, nothing extra</li></ul></div>
+    </div>
+    <div class="row" style="gap:16px;align-items:center" data-s="2">
+      <span class="pill" style="border-color:var(--lime);color:var(--lime)">AC1 <span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span></span><span class="pill" style="border-color:var(--lime);color:var(--lime)">AC2 <span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span></span><span class="pill" style="border-color:var(--lime);color:var(--lime)">Must never <span class="mark ok sm" role="img" aria-label="yes"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.8l4.4 4.4L19 7.6"/></svg></span></span>
+      <span class="fade" data-s="3" style="font-size:28px;margin-left:20px">→ only then can the agent finish</span>
+    </div>
+  </div>
+</section>
+
+<!-- 5.6 Don't let the agent game the tests -->
+<section class="slide content" data-title="Don't let the agent game the tests" data-pace="800,1000,1000">
+  <h2 class="t">Don't let the agent game the tests</h2>
+  <div class="body">
+    <div class="hookflow">
+      <div class="card" data-s="0"><h4>Test fails</h4><p>AC2: expected 429, got 200</p></div>
+      <svg class="arrow fade" data-s="1" viewBox="0 0 52 20"><path d="M2 10h44M38 3l8 7-8 7"/></svg>
+      <div class="card bad" data-s="1"><h4>Agent tries to edit the test</h4><p class="mono" style="font-size:19px">Edit ProfilePhoneTests.cs</p></div>
+      <svg class="arrow fade" data-s="2" viewBox="0 0 52 20"><path d="M2 10h44M38 3l8 7-8 7"/></svg>
+      <div class="card hi" data-s="2"><h4>Hook blocks it</h4><p>Approved test files are locked during /implement. Fix the code.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5.7 Fast and deterministic -->
+<section class="slide content" data-title="Fast and deterministic" data-pace="700,600,600,600,1100">
+  <h2 class="t">Fast and deterministic</h2>
+  <div class="body col" style="gap:28px">
+    <div class="cards" style="--n:4">
+      <div class="card" data-s="0"><h3>Seconds</h3><p>Core checks, one command</p></div>
+      <div class="card" data-s="1"><h3>Same result</h3><p>Fixed seeds, frozen clocks, isolated state</p></div>
+      <div class="card" data-s="2"><h3>Short output</h3><p>Only what failed</p></div>
+      <div class="card bad" data-s="3"><h3>No flaky tests</h3><p>Remove them right away</p></div>
+    </div>
+    <div class="statement fade" data-s="4">A flaky test teaches the agent that retrying beats fixing.</div>
+  </div>
+</section>
+
+<!-- 5.8 Docs travel with the code -->
+<section class="slide content" data-title="Docs travel with the code" data-pace="800,700,700,1000">
+  <h2 class="t">Docs travel with the code</h2>
+  <div class="body col" style="gap:30px">
+    <div class="pr card" style="width:auto" data-s="0">
+      <div class="head">PR #1234 · Phone number on profile</div>
+      <div class="check" data-s="1"><span class="s" style="background:var(--lime)"></span>Documentation updated</div>
+      <div class="check" data-s="2"><span class="s" style="background:var(--lime)"></span>ADR-012 updated</div>
+      <div class="check" data-s="3"><span class="s" style="background:var(--red)"></span>Changelog entry <span class="red" style="margin-left:auto">missing → check fails</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5.9 Show it running -->
+<section class="slide content" data-title="Show it running" data-pace="800,1000">
+  <h2 class="t">Show it running</h2>
+  <div class="body" style="display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center">
+    <div class="card" data-s="0" style="height:400px;display:grid;place-items:center;position:relative;padding:0;overflow:hidden">
+      <div style="text-align:center"><div style="width:110px;height:110px;border-radius:50%;border:4px solid var(--fg);display:grid;place-items:center;margin:0 auto"><svg viewBox="0 0 24 24" width="50" height="50"><path d="M8 5v14l11-7z" fill="#fff"/></svg></div>
+      <div style="margin-top:20px;font-size:24px">profile-phone.webm · 0:42</div></div>
+    </div>
+    <ul class="b" style="font-size:28px">
+      <li data-s="0">A recording of the implementation running</li>
+      <li data-s="1">Video, E2E trace or screenshots of the user flow</li>
+      <li data-s="1" style="--d:.2s">Attached to the PR</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 5.10 Sequence diagram round two -->
+<section class="slide content" data-title="Sequence diagram, round two" data-pace="800,1000,1200">
+  <h2 class="t">Sequence diagram, round two</h2>
+  <div class="body" style="display:grid;grid-template-columns:1fr 1fr;gap:40px">
+    <div class="card" data-s="0"><div class="lbl" style="margin-bottom:14px">From the plan</div>
+      <div class="code" style="font-size:20px">User → Web: Save profile
+Web → API: PUT /profile
+API → Web: 400 not E.164   <span class="s">AC1</span>
+API → Web: 429 rate limit  <span class="s">AC2</span>
+API → SQL: UPDATE Users</div></div>
+    <div class="card" data-s="1"><div class="lbl" style="margin-bottom:14px">Drawn from the code</div>
+      <div class="code" style="font-size:20px">User → Web: Save profile
+Web → API: PUT /profile
+API → Web: 400 not E.164   <span class="s">AC1</span>
+<span class="red">API → Web: 429 ... missing</span>
+API → SQL: UPDATE Users
+<span class="orange">API → Cache: SET profile  (new)</span></div></div>
+    <div class="statement fade" data-s="2" style="grid-column:1/-1;font-size:36px">Every difference is drift.</div>
+  </div>
+</section>
+
+<!-- 5.11 File drift guard -->
+<section class="slide content" data-title="The file drift guard" data-pace="800,900,1000">
+  <h2 class="t">The file drift guard</h2>
+  <div class="body col" style="gap:24px">
+    <div class="term" data-s="0" style="font-size:22px"><span class="p">$</span> <span class="typing" data-s="0">drift-guard --plan plans/JIRA-1234/plan.md</span>
+<span class="fade lime" data-s="1">  ✓ 5 of 6 planned files changed</span>
+<span class="fade orange" data-s="1" style="--d:.2s">  ! Shared/StringUtils.cs changed, not in the plan</span>
+<span class="fade red" data-s="1" style="--d:.4s">  ✗ Api.Tests/PhoneProperties.cs missing (must-never rule)</span></div>
+    <div class="statement fade" data-s="2" style="font-size:34px">Posted as a PR comment. Machines ask the question, not the reviewer.</div>
+  </div>
+</section>
+
+<!-- 5.12 The PR lists the evidence -->
+<section class="slide content" data-title="The PR lists the evidence" data-pace="600,400,400,400,400,400,1100">
+  <h2 class="t">The PR lists the evidence</h2>
+  <div class="body" style="display:grid;grid-template-columns:1fr 420px;gap:40px">
+    <div class="card evid" data-s="0">
+      <div class="check" style="border-top:0" data-s="1"><span class="s"></span>AC1 → ProfilePhoneTests.InvalidPhone → passed</div>
+      <div class="check" data-s="2"><span class="s"></span>AC2 → ProfilePhoneTests.RateLimit → passed</div>
+      <div class="check" data-s="3"><span class="s"></span>Must never → PhoneProperties (1,000 inputs) → passed</div>
+      <div class="check" data-s="4"><span class="s"></span>Docs, ADR-012, changelog</div>
+      <div class="check" data-s="5"><span class="s"></span>Recording · diagram comparison · drift report</div>
+    </div>
+    <div class="center-col"><div class="statement fade" data-s="6">The human reads evidence, not the diff.</div></div>
+  </div>
+</section>
+
+<!-- 5.13 Grade the PR -->
+<section class="slide content" data-title="Bonus: grade the PR" data-pace="700,700,700,700">
+  <h2 class="t">Bonus: grade the PR</h2>
+  <div class="body">
+    <div class="grades">
+      <div class="card" data-s="0" style="--c:var(--lime)"><h3>Small</h3><p>Small change, no business logic</p><div class="gate">Auto-merge</div></div>
+      <div class="card" data-s="1" style="--c:var(--sky)"><h3>Medium</h3><p>Bigger change, no business logic</p><div class="gate">Machine review</div></div>
+      <div class="card" data-s="2" style="--c:var(--orange)"><h3>Large</h3><p>Many files or packages, touches business logic</p><div class="gate">Needs a human</div></div>
+      <div class="card" data-s="3" style="--c:var(--red)"><h3>Critical</h3><p>Core business logic, migrations, database layer</p><div class="gate">Human gate, mandatory</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5.14 Review providers -->
+<section class="slide content" data-title="Review providers" data-pace="700,600,600,1100">
+  <h2 class="t">Review providers</h2>
+  <div class="body col" style="gap:34px">
+    <div class="cards" style="--n:3">
+      <div class="card" data-s="0"><h3>CodeRabbit</h3><p>AI review comments on every PR</p></div>
+      <div class="card" data-s="1"><h3>Greptile</h3><p>Reviews with the whole codebase as context</p></div>
+      <div class="card" data-s="2"><h3>Claude in CI</h3><p>Claude Code in your pipeline, with your own review skill</p></div>
+    </div>
+    <ul class="b" style="font-size:28px">
+      <li data-s="3">Comment on every PR and catch what rules miss</li>
+      <li data-s="3" style="--d:.2s" class="orange">Helpful, but they are models, not guarantees</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 5.15 Code quality platforms -->
+<section class="slide content" data-title="Code quality platforms" data-pace="800,700,700,700,700">
+  <h2 class="t">Code quality platforms</h2>
+  <div class="body col" style="gap:30px">
+    <div class="statement" data-s="0">SonarCloud: one quality gate for all three stacks</div>
+    <div class="cards" style="--n:4">
+      <div class="card" data-s="1"><h3>Coverage</h3></div>
+      <div class="card" data-s="2"><h3>Duplication</h3></div>
+      <div class="card" data-s="3"><h3>Complexity</h3></div>
+      <div class="card" data-s="4"><h3>Security issues</h3></div>
+    </div>
+    <div class="row" style="gap:16px" data-s="4"><span class="pill">.NET</span><span class="pill">PHP</span><span class="pill">TypeScript</span></div>
+  </div>
+</section>
+
+<!-- 5.16 Evals in CI -->
+<section class="slide content" data-title="Evals in CI: know why it broke" data-pace="800,1000,1100">
+  <h2 class="t">Evals in CI: know why it broke</h2>
+  <div class="body col" style="gap:30px">
+    <div class="vs">
+      <div class="card bad" data-s="0"><div class="lbl bad">Without evals</div><div class="txt">Build red. Something changed.</div></div>
+      <div class="card hi" data-s="1"><div class="lbl good">With evals</div><div class="txt mono" style="font-size:21px">uses-migration-skill  1.00 → 0.33<br><span class="muted">after: CLAUDE.md edit in PR #1301</span></div></div>
+    </div>
+    <div class="statement fade" data-s="2" style="font-size:36px">When the setup or the model changes, evals show which behavior changed.</div>
+  </div>
+</section>
+
+<!-- 5.17 Hidden value of review comments -->
+<section class="slide content" data-title="The hidden value of review comments" data-pace="800,800,800,800,1100">
+  <h2 class="t">The hidden value of review comments</h2>
+  <div class="body">
+    <div class="cf">
+      <div class="card" data-s="0"><div class="k">every week</div><h4>A scheduled workflow triages the comments</h4></div>
+      <svg class="arrow fade" data-s="1" viewBox="0 0 52 20"><path d="M2 10h44M38 3l8 7-8 7"/></svg>
+      <div class="card" data-s="1"><div class="k">shared place</div><h4>Findings posted for the team</h4></div>
+      <svg class="arrow fade" data-s="2" viewBox="0 0 52 20"><path d="M2 10h44M38 3l8 7-8 7"/></svg>
+      <div class="card" data-s="2"><div class="k">team</div><h4>The team discusses them</h4></div>
+      <svg class="arrow fade" data-s="3" viewBox="0 0 52 20"><path d="M2 10h44M38 3l8 7-8 7"/></svg>
+      <div class="card hi" data-s="3"><div class="k">fix once</div><h4>Common ones become rules, hooks or tests</h4></div>
+    </div>
+    <div class="statement fade" data-s="4" style="margin-top:50px">The same comment never has to be written twice.</div>
+  </div>
+</section>
+
+<!-- 5.18 What humans still do -->
+<section class="slide content" data-title="What humans still do" data-pace="700,600,600,600">
+  <h2 class="t">What humans still do</h2>
+  <div class="body">
+    <div class="cards" style="--n:2">
+      <div class="card" data-s="0" style="border-color:var(--violet)"><h3>Approve the intent</h3><p>ACs, sequence diagram, plan</p></div>
+      <div class="card" data-s="1" style="border-color:var(--violet)"><h3>Read the evidence</h3><p>Not every line of the diff</p></div>
+      <div class="card" data-s="2" style="border-color:var(--violet)"><h3>Own large and critical PRs</h3><p>Business logic, migrations, database</p></div>
+      <div class="card" data-s="3" style="border-color:var(--violet)"><h3>Be accountable</h3><p>A person is responsible for what ships</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5.19 Code review is solved -->
+<section class="slide content" data-title="Code review is solved" data-pace="900,1300,1300,1300">
+  <h2 class="t">Code review is solved</h2>
+  <div class="body col" style="gap:34px">
+    <div class="hb" style="grid-template-columns:260px 1fr 150px;row-gap:22px" data-s="0">
+      <div class="lab">Median team</div><div class="tr" data-mv="1" style="--v:2.3%;--c:var(--orange);height:34px"><i></i></div><div class="val orange" style="font-size:34px">+7.7%</div>
+      <div class="lab">My team</div><div class="tr" data-mv="1" style="--v:100%;--c:var(--lime);height:34px"><i></i></div><div class="val lime" style="font-size:34px">4.6x</div>
+    </div>
+    <div class="split" data-s="2" style="height:220px">
+      <div class="m"><span>Machines check the code</span></div>
+      <div class="h"><span>Humans check the intent</span></div>
+    </div>
+    <div class="statement fade" data-s="3">Next: the hackathon.</div>
+  </div>
+</section>
+
+<!-- End -->
+<section class="slide cover" data-hook="streaks" data-title="Hackathon" data-o="1380,650">
+  <canvas class="streaks" width="1600" height="900"></canvas>
+  <div class="wm abs" style="left:83px;top:38px">WUNDERDOG</div>
+  <h1 class="cover-title"><b data-s="0" class="left">Hackathon</b><span data-s="0" class="left" style="--d:.25s">Build one check for your team</span></h1>
+  <div class="cover-meta fade" data-s="0" style="--d:.6s">Thank you · questions</div>
+</section>
+
+</div>
+<div class="prog" id="prog"></div>
+<div class="hint" id="hint">→ next slide · R replay · O overview</div>
+<div class="ui" id="ui">
+  <button type="button" id="b-prev" aria-label="Previous">←</button>
+  <span class="ctr" id="ctr">1 / 83</span>
+  <button type="button" id="b-next" aria-label="Next">→</button>
+  <button type="button" id="b-ov" aria-label="Overview">Overview</button>
+  <button type="button" id="b-fs" aria-label="Fullscreen">Full screen</button>
+  <a class="pdf" id="b-pdf" href="ai-native-development.pdf" download title="Slides with speaker notes">PDF</a>
+  <button type="button" id="b-notes" hidden>Notes</button>
+</div>
+<div class="np" id="np" hidden role="region" aria-label="Presenter notes">
+  <div class="np-head"><b id="np-title"></b><span><span id="np-status"></span><span id="np-who"> · only you see these</span> · <button type="button" id="np-close">Close</button></span></div>
+  <textarea id="np-text" aria-label="Notes for this slide" placeholder="Write what you want to say on this slide"></textarea>
+</div>
+<div class="ov" id="ov" aria-label="Overview"><h2>All slides</h2><div class="grid" id="ovg"></div></div>
+<script type="application/json" id="static-notes">{"01-where-ai-is-today":"Part one: what the data says about AI and real productivity. Most numbers come from DX's talk \"The State of AI in Software Development\" (Justin Reock, AI Engineer, 2026), based on data from about 200,000 engineers in 400+ companies.\n\nCheck before the talk: the numbers in this part were taken from summaries of the talk. Watch the video once and confirm them.\n\nSources\nhttps://www.youtube.com/watch?v=Se8jHLliLXE","02-agent-setup":"Part two: how to set up the agent so we can trust the code it writes. We go from instructions Claude may follow to checks Claude Code always runs. Then MCP, where the agent files live, and evals to prove the setup works.\n\nAll examples are for Claude Code on Jakamo's stack: .NET, PHP, Next.js/React and Azure.\n\nSources\nhttps://code.claude.com/docs/en/best-practices","03-talking-to-the-agent":"Part three is short: how you talk to the agent in a session. The setup from part two is the base; this is about the prompts you type every day.\n\nSources\nhttps://code.claude.com/docs/en/best-practices","04-planning":"Part four, after lunch: planning. After part two we can trust the code. What's left is the intent: are we building the right thing? Intent is what we plan for.\n\nRunning example for this part: adding a phone number to the user profile.","05-validation-at-scale":"Part five: validation at scale. The setup is trusted (part two) and the intent is approved (part four). Now the result has to prove it matches both, without a human reading every line.\n\nThis is where code review gets solved: machines check that the code is what it should be, humans check the evidence against the intent.","a-road-sign-to-oblivion":"Big statement, say it slowly. A plan without ultra-precise acceptance criteria (ACs) is not a plan. The agent can't build what can't be verified.\n\nThe rest of this part shows how to get those ACs.","ac-validation-in-the-loop":"Every AC is checked twice in the loop:\n1. The tests: one test per AC, property tests for the must-never rules, and an E2E test for the main flow.\n2. The implementation is checked against each AC: nothing missing, nothing extra.\n\nThe agent can't finish until every AC is green (the Stop hook from part two).","ask-for-evidence":"Give Claude something it can run that comes back pass or fail, and ask it to keep going until it passes. Then ask for evidence: the command it ran and the output. \"All tests pass\" on its own tells you very little.\n\nReading the output is faster than running the check yourself. For a session you weren't watching, it's the only proof you have.\n\nSources\nhttps://code.claude.com/docs/en/best-practices","bonus-grade-the-pr":"Grade every PR so people only look where it matters:\n• Small: a small change with no business logic. Auto-merge.\n• Medium: a bigger change, still no business logic. Machines review it.\n• Large: many files or packages, touches business logic. Needs a human.\n• Critical: core business logic, migrations, the database layer. A human gate is mandatory.\n\nOpen question: should medium auto-merge, or get a quick human look?","build-in-a-fresh-session":"The approved plan is committed as files. A new session builds from it with a clean context, so the discovery chat doesn't distract it. /implement reads the plan and works through it.","call-skills-directly":"Skills can be called directly with arguments. Two examples:\n• /implement JIRA-ISSUE-{YYYY}: reads the ticket, plans, builds, tests and opens the PR, the team's way.\n• /design 3 user profile management section examples: gives three design options to choose from.\n\nWhy it's great: one short command replaces a long prompt. The team's way of working is built into the skill, so every run follows the same steps, for juniors and seniors alike. Results that look the same are easier to review. Remember the junior vs staff+ slide from part one.\n\nOpen question: do Jakamo teams already have skills like these, or do we show demo ones?","centralized":"Central files belong to the organization.\n• Managed settings come from the admin console, MDM or a managed-settings.json file. No personal settings can override them, so security rules go here.\n• A company plugin marketplace shares skills, agents and hooks across many repos and teams.\n• Org connectors are MCP servers the company has approved.\n\nWith 300 teams, this is how one good practice reaches everyone without copying files.\n\nSources\nhttps://code.claude.com/docs/en/managed-settings\nhttps://code.claude.com/docs/en/plugins","claude-builds-the-evals-for-you":"Claude Code has evals built in, for skills and plugins.\n• claude plugin eval init asks about your skill, drafts test cases and graders, tries them once and writes the files.\n• claude plugin eval . runs every case 3 times with the skill and 3 times without it, and shows both scores and the difference.\n• Results go to evals/results/ with a report.html.\n• In CI, --threshold fails the build when a case drops below the limit.\n\nRead the Δ column: 0.00 means the skill adds nothing on that case. The numbers in the table are example data.\n\nSources\nhttps://code.claude.com/docs/en/plugin-evals","code-quality-platforms":"A code quality platform such as SonarCloud gives one quality gate for coverage, duplication, complexity and security issues across .NET, PHP and TypeScript. It covers what Fallow doesn't for .NET and PHP.","code-review-is-solved":"Back to part one: the median team got about 7.7%. Your team got 4.6x. The difference is the review bottleneck: machines check the code, humans check the intent.\n\nThen hand over to the hackathon: pick one technique from today and build it for your own team.","dead-code-complexity-duplication":"Agents tend to add code: new helpers next to existing ones, copy-paste, functions that grow too complex, code nobody calls.\n\nFor TypeScript and JavaScript, Fallow finds unused files and exports, duplicated logic (even with renamed variables) and complexity hotspots. For .NET and PHP, put the same checks into the review skill, or use the quality platform on slide \"Code quality platforms\".\n\nSources\nhttps://blog.logrocket.com/clean-ai-code-fallow/","docs-travel-with-the-code":"The PR must include the documentation updates, ADR updates and a changelog entry, either in the change or in the PR body. If one is missing, the check fails.\n\nThis is easy to check mechanically, and it means docs never fall behind the code.","don-t-let-the-agent-game-the-tests":"When a test fails, the easiest way out for the agent is to change the test. A PreToolUse hook blocks edits to the approved test files during /implement. The agent has to fix the code, not the test.\n\nThis connects part two (hooks) and part four (tests come from the intent).","evals-in-ci-know-why-it-broke":"The evals from part two run in CI. When someone changes the setup, or a new model comes out, the evals show which behavior changed, not just that the build went red.\n\nThe numbers are example data.\n\nSources\nhttps://code.claude.com/docs/en/plugin-evals","example-discover-jira-1234":"What the skill does, step by step:\n1. Fetch the ticket.\n2. Read the ADRs, C4 diagrams, related code and past PRs.\n3. List gaps and conflicts between them.\n4. Ask the human questions until every AC is precise.\n5. Write the ACs file.\n\nIf you have your own discovery skill from your project, show it here.","fast-and-deterministic":"The agent learns from the loop. Make the loop fast and deterministic:\n• Core checks run in seconds with one command.\n• The same input gives the same result: fixed random seeds, frozen clocks, isolated state.\n• The output shows only what failed. Noise costs attention on every turn.\n• Flaky tests teach the agent that retrying works better than fixing. Remove them from the main suite right away. A flaky test is worse than none.\n\nSources\nhttps://addyo.substack.com/p/agentic-verification","fix-the-eval-not-just-the-agent":"Anthropic's post has a good example: Opus 4.5 first scored 42% on CORE-Bench. Someone found rigid grading, unclear tasks and tasks that could not be reproduced. After fixing the eval, the same model scored 95%. The model did not change; the eval did.\n\nFour habits: clear tasks (two experts would agree on pass or fail), fair graders, a clean environment for every run, and reading the transcripts.\n\nThis closes part two: a tested setup is what lets us trust the code the agent writes.\n\nSources\nhttps://www.anthropic.com/engineering/demystifying-evals-for-ai-agents","from-acs-to-plan":"Start Claude in plan mode (claude --permission-mode plan, or switch in the session). In plan mode Claude can read and think but can't edit files until you approve the plan.\n\nEvery step in the plan points to the AC it serves. A step with no AC is either missing an AC or not needed.\n\nSources\nhttps://code.claude.com/docs/en/permission-modes","from-please-to-must":"Every instruction you give Claude Code is either a request or a guarantee.\n\nAt the top, Claude (the model) reads the instruction and decides what to do. It usually follows it, but there is no guarantee.\nAt the bottom, Claude Code (the program around the model) runs the check every time, no matter what the model decided.\n\nWe go down this list one step at a time. The further down, the more certain.\n\nKey points\n• Top: requests, the model decides\n• Bottom: guarantees, the harness enforces\n• Same idea as the two review layers\n\nSources\nhttps://code.claude.com/docs/en/best-practices","good-dx-is-good-agent-experience":"The companies that get real gains improved the whole system, not just the code generation. A codebase that is easy for people to work in (fast builds, good tests, clear rules, written decisions) is also easy for agents. You can even ask the agents where they get stuck.\n\nExamples from the DX talk:\n• Morgan Stanley: about 300,000 hours saved per year\n• Zapier: about 15% more value per engineer, and they are hiring more\n• Spotify: an agent that helps SREs during incidents\n\nCheck before the talk: confirm the company numbers in the video.\n\nSources\nhttps://www.youtube.com/watch?v=Se8jHLliLXE","grade-the-outcome-not-the-claim":"Agents say \"done\" confidently even when it isn't. Graders should check the real result in the repo (tests, files, data), not the agent's message.\n\nThree kinds of graders: code graders (tests, regex, tool checks) are fast, cheap and give the same answer every time. Model graders (an LLM with a rubric) handle open-ended output but need checking. Humans are best but slow and expensive. Use code graders where you can.\n\nThe test output is example data.\n\nSources\nhttps://www.anthropic.com/engineering/demystifying-evals-for-ai-agents","hackathon":"Thank the room. Take questions. Then start the optional hackathon: each team picks one pain point and builds one check, hook, skill or plan template for it.","hand-it-over-and-say-how-big":"If you already have what Claude needs, hand it over instead of describing it: @ a file to include it, paste a screenshot of the broken page, pipe a log into claude -p.\n\nClaude tends to build the smallest thing that satisfies the request, because it can't see how much you hoped for. \"Be ambitious\" tells it you want the fuller version: edge cases, empty and error states, the follow-up work. That is about scope, which only you know.\n\nSources\nhttps://code.claude.com/docs/en/best-practices","hooks":"A hook runs your own command at a fixed point in Claude's loop. It runs every time, no matter what the model decides. This is the first real guarantee.\n\nThree examples:\n• PostToolUse: after every Edit or Write, run the formatter (dotnet format, php-cs-fixer, prettier).\n• PreToolUse: before an edit, block changes to the Migrations folder or to generated API clients. Exit code 2 blocks the action.\n• Stop: when Claude tries to finish, run the tests. If they fail, exit code 2 sends Claude back to work.\n\nLive demo idea: ask Claude to edit a migration. The hook blocks it and Claude explains why.\n\nSources\nhttps://code.claude.com/docs/en/hooks-guide\nhttps://code.claude.com/docs/en/best-practices","how-much-faster-does-ai-make-a-team":"Ask the room to vote with their fingers: 1 = 10% faster, 2 = 50% faster, 3 = 2x, 4 = 10x. Look around and say the most common answer out loud. Write it down, because slide \"The answer\" compares it with the data.\n\nKey points\n• Everyone votes, no wrong answers\n• Remember the room's answer","humans-review-intent-here":"Approving the ACs, the sequence diagram and the plan IS the human review. This is where the human decides whether we are building the right thing.\n\nFixing intent before any code exists takes minutes. Finding the same problem in a PR costs much more: the code, tests and review all have to be redone.","jakamo-x-wunderdog-ai-native-development":"Opening slide. Say who you are and what today is about: how to work with coding agents so that the team actually gets faster, not just the typing.\n\nThe whole day builds toward one idea: humans stop reading every line of code. Machines check that the code is correct. Humans check that it is the right thing to build.\n\nKey points\n• One day, five parts, then an optional hackathon\n• Goal: code review that scales when agents write the code","keep-guarantees-few":"The further down the ladder, the more certain, but also the more you have to maintain. Every hook will sometimes fire when it shouldn't.\n\nUse hooks only for rules with zero exceptions. Preferences stay in rules, where Claude can judge whether they fit the situation.\n\nIf you keep adding IMPORTANT to a CLAUDE.md line and Claude still misses it, that line belongs in a hook. If you have hooks for preferences, delete them.\n\nSources\nhttps://code.claude.com/docs/en/best-practices","local":"Local files are for you only: your personal CLAUDE.md in ~/.claude/, your own skills, CLAUDE.local.md in the repo (add it to .gitignore) and .claude/settings.local.json.\n\nThe trap: something works great for you because of your local setup, and a teammate gets a different result. If the team needs a rule, move it to the repo.\n\nSources\nhttps://code.claude.com/docs/en/memory\nhttps://code.claude.com/docs/en/settings","mcp-the-cons":"The downsides of MCP:\n• Context cost: tool definitions are loaded before any work starts. One article measured 550–1,400 tokens per tool, and about 55,000 tokens for three servers (GitHub, Slack, Sentry).\n• Reliability: remote servers can fail and time out. One benchmark saw a 28% failure rate on a remote server.\n• Security: servers that read outside content (web pages, issues, emails) can bring in prompt injection.\n• Trust: check each server before connecting it, and turn off the ones you don't use.\n\nFair note: Claude Code's tool search is on by default, so it loads tool names first and full definitions when needed. That lowers the up-front cost. The numbers above come from a vendor article that prefers CLIs; present them as an example, not a law.\n\nSources\nhttps://www.apideck.com/blog/mcp-server-eating-context-window-cli-alternative\nhttps://code.claude.com/docs/en/mcp","mcp-vs-cli-tokens":"The same small task done two ways: with the GitHub MCP server it used 44,026 tokens (43 tool definitions loaded). With the CLI it used 1,365 tokens. Benchmarks in the same article show MCP using 4 to 32 times more tokens.\n\nRule of thumb: if a system has a CLI (az, gh, dotnet), let Claude use it. It already knows most CLIs, and for a new one, pointing it at --help is enough. Use MCP when there is no CLI.\n\nFair note: tool search in Claude Code lowers MCP's up-front cost. The numbers come from a vendor that prefers CLIs.\n\nSources\nhttps://www.apideck.com/blog/mcp-server-eating-context-window-cli-alternative\nhttps://code.claude.com/docs/en/best-practices","mcp-why-it-s-useful":"MCP (Model Context Protocol) connects the agent to systems outside the repo: work items, databases, a browser, error tracking. The agent gets typed tools and can sign in with OAuth.\n\nIt is most useful for systems that have no command-line tool, and for tools you use often in the same session.\n\nKey points\n• Connects to outside systems\n• Typed tools, OAuth\n• Best when there is no CLI\n\nSources\nhttps://code.claude.com/docs/en/mcp","must-never-acs":"Most ACs only describe the happy path. Every plan should also list a few rules that must always hold: the cart total always equals the sum of its lines, a balance never goes negative, running something twice gives the same result as once.\n\nA property test checks such a rule. You write the rule; the tool generates hundreds or thousands of random inputs (empty lists, huge numbers, odd decimals) and checks the rule on each. When it finds a failing input, it shrinks it to the smallest one, which is easy to read and fix.\n\nTools: FsCheck or CsCheck for .NET, fast-check for TypeScript, Eris for PHP.\n\nSources\nhttps://addyo.substack.com/p/agentic-verification","my-project":"Your own story. The project has about 6,000 developers in about 300 teams. Your team got 4.6x more output, in an ultra-regulated environment.\n\nPut it next to the 7.7% median: the difference is not the model. It is the setup, the planning and the review process. That is what today is about.\n\nBe ready for the question \"what does output mean?\" Say how it was measured (PRs merged, features shipped or similar) and over what time.\n\nKey points\n• ~6,000 developers, ~300 teams\n• My team: 4.6x more output\n• Same models everyone has, different way of working","myth-or-still-true":"Quick vote on each line, then reveal. All four are outdated advice:\n• CAPS: current models follow a plainly written line. Too much emphasis makes Claude over-apply the rule. If a rule can't bend, make it a hook.\n• \"Think harder\": effort level is the real control. These words only nudge within it.\n• \"Don't be lazy, keep going\": current models carry on through an agreed task. Give it a check to pass instead.\n• Architecture in CLAUDE.md: Claude reads the repo itself. Only write what isn't in there.\n\nSources\nhttps://code.claude.com/docs/en/best-practices","planning-recap":"The whole planning flow in one line: evidence → questions → precise ACs → sequence diagram → plan with files and tests → approved intent → build.\n\nNext part: how machines check that the result matches the intent.","planning-starts-with-discovery":"Before any plan: collect the evidence. If the ACs that together make up the intent aren't crystal clear for the agent, no plan can be made.\n\nThe order: discovery → precise ACs → plan → build.","repo":"Repo files are committed, so everyone working in the repo gets the same setup. Changes to them go through PRs like any code change, which is how the team agrees on rules.\n\nDetail worth knowing: deny rules in .claude/settings.json apply right away. Allow rules and hooks start after each person accepts the trust dialog for that folder.\n\nSources\nhttps://code.claude.com/docs/en/best-practices\nhttps://code.claude.com/docs/en/permissions","review-is-drowning":"Three side effects from the DX data.\n\n1. PRs grew from about 44 to 72 lines. Fast code generation plus slow builds pushes people to batch more into one PR. Bigger PRs take longer to review and hide more problems.\n2. Teams deploy more often, but the change failure rate is much less stable than before.\n3. Maintainability looks better on paper, but developers are less confident that their changes are safe.\n\nAll three put more pressure on review.\n\nCheck before the talk: confirm 44 → 72 lines in the video.\n\nSources\nhttps://www.youtube.com/watch?v=Se8jHLliLXE","review-providers":"AI review tools comment on every PR: CodeRabbit, Greptile, or Claude running in CI. They catch things no rule covers.\n\nThey are models, so they are not guarantees. Treat their comments as input for the human, not as a gate.","rules-claude-md":"CLAUDE.md is loaded into every session, so every line costs a bit of attention on every task. Keep only what Claude can't work out from the code:\n• the exact test, typecheck and lint commands\n• places where the code is misleading (old patterns that must not be copied)\n• decisions that are not in the repo\n• anything you have had to correct twice\n\nStay under about 200 lines. /init writes a first version from the codebase. /doctor prompt-audit finds instructions that are outdated, point at missing files or contradict each other.\n\nThis is still a request. Claude follows it nearly every time, but not always.\n\nThe example file is made up for the stack; replace it with a real Jakamo one if you can.\n\nSources\nhttps://code.claude.com/docs/en/best-practices\nhttps://code.claude.com/docs/en/memory","same-agent-different-results":"Two teams, the same model, the same prompt. One gets messy code, the other gets code that fits the codebase. The model did not change. What changed is what the agent knew and what it was allowed to do.\n\nThis part is about that setup.\n\nKey points\n• Same model, same prompt\n• Different setup → different code","sequence-diagram-of-the-solution":"Part of the plan: a sequence diagram of the solution, as detailed as possible. Every actor, service, API call, database write, queue message and error path. Each step maps to an AC.\n\nThe human sees the whole flow before any code exists. Gaps show up as missing arrows: for example, if nothing in the diagram handles a database timeout, ask whether an AC is missing.\n\nFor a big feature, draw one diagram per flow so each stays readable.","sequence-diagram-round-two":"A review agent draws the sequence diagram from the actual code and compares it with the one from the plan. Every difference is drift: here the rate limit response is missing (AC2 not implemented) and there is a new cache write nobody planned.\n\nThis catches drift in behavior, not only in files.","show-it-running":"Every PR includes a recording of the implementation running: a video, a Playwright E2E trace, or screenshots of the user flow. The reviewer sees the feature working without checking out the branch.","skill-examples":"Three examples for Jakamo:\n• Add an EF Core migration: Claude can start it on its own.\n• Run the app locally: so /run and /verify don't have to work out the steps every time.\n• Deploy to Azure staging: it has side effects, so it gets disable-model-invocation: true. Claude can't start it; only a human typing /deploy-staging can.\n\nTest the description too. Claude decides from the description whether to load the skill. Write prompts that should load it and near misses that should not.\n\nSources\nhttps://code.claude.com/docs/en/skills\nhttps://agentskills.io/skill-creation/optimizing-descriptions","skills":"A skill is a step-by-step procedure for one job, saved in .claude/skills/\u003cname>/SKILL.md.\n\nOnly the name and description load at the start of a session. The full steps load only when the task needs them. That makes skills lighter than putting the same text in CLAUDE.md.\n\nClaude can start a skill by itself when the description matches the task, or you can start it with /name.\n\nKey points\n• A procedure for one job\n• Only the description loads up front\n• Claude picks it up, or you call it\n\nSources\nhttps://code.claude.com/docs/en/skills\nhttps://code.claude.com/docs/en/best-practices","specific-rules":"If a rule only matters in one part of the code, put it in .claude/rules/ with a paths: filter. It loads only when Claude works on matching files. A .NET rule for the API, a PHP rule for the legacy code, a React rule for the web app.\n\nThis keeps CLAUDE.md short and keeps unrelated rules out of the way. It is still a request: Claude decides.\n\nThe rule text in the example is made up; use Jakamo's real conventions.\n\nSources\nhttps://code.claude.com/docs/en/memory\nhttps://code.claude.com/docs/en/best-practices","start-small-from-real-failures":"Don't invent test cases. Take them from things that actually went wrong: the bug tracker, review comments, failed agent runs, and checks you already do by hand. Anthropic says 20 to 50 simple tasks from real failures is a great start.\n\nMeasure with and without the skill. Rerun the suite every time you change the setup and every time a new model comes out.\n\nSources\nhttps://www.anthropic.com/engineering/demystifying-evals-for-ai-agents\nhttps://code.claude.com/docs/en/plugin-evals","static-checks-while-the-agent-works":"The first layer: static checks that run while the agent works. The hooks from part two run build, analyzers, lint and types on every change, and the Stop hook makes sure they pass before Claude finishes.\n\nPer stack: .NET analyzers with nullable on and warnings as errors; PHPStan on the highest level you can reach; tsc in strict mode and ESLint for Next.js.\n\nThese checks are free, fast and never get tired.","steer-the-session":"No setup replaces watching the first minute and stepping in when Claude heads the wrong way.\n• Esc stops Claude mid-action and keeps everything so far.\n• /rewind (or Esc twice) rolls back the code, the conversation or both. That makes it safe to try a bold approach first.\n• /clear starts over. Use it between unrelated tasks. If you have corrected the same thing twice and it's still wrong, a third correction just adds to a chat full of failed attempts. /clear and one better prompt works better.\n\nSources\nhttps://code.claude.com/docs/en/best-practices\nhttps://code.claude.com/docs/en/checkpointing","subagents":"A subagent is a custom helper for one use case, saved in .claude/agents/. It has its own context and its own list of tools.\n\nGood uses: work that can run in parallel, keeping long output out of your main session, a fresh reviewer that didn't see how the code was written, and giving a task fewer tools.\n\nThe tools line is enforced by Claude Code: a reviewer with only Read, Grep and Glob can't edit files, no matter what the model wants. That is why subagents sit low on the ladder.\n\nThey are not smarter: same model, same task. Each one costs extra tokens.\n\nSources\nhttps://code.claude.com/docs/en/sub-agents\nhttps://code.claude.com/docs/en/best-practices","tell-it-what-it-can-t-see":"The agent reads the repo, but it can't see what's in your head: the symptom you saw, which part of the code you suspect, or what \"fixed\" means.\n\nA specific prompt names the file or area, describes the symptom, and says what done looks like (here: a failing test first, then the fix). It saves you a round of corrections.\n\nA vague prompt is fine when you are exploring. When you know what you want, say it.\n\nSources\nhttps://code.claude.com/docs/en/best-practices","tests-come-from-the-intent-not-the-code":"A known problem: if the same agent writes the feature and its test, both can share the same mistake. The test passes, but it tests the wrong thing.\n\nIn this flow the tests come from the ACs that a human approved, before any code exists. The test checks the intent, not the code the agent happened to write.\n\nSources\nhttps://addyo.substack.com/p/agentic-verification","the-answer":"This is the \"wait, what?\" moment. The median gain in PR throughput is about 7.7%. Even the best teams in the data did not reach 2x. Compare with what the room voted.\n\nThe bars are on a simple scale: 10x = full bar. 7.7% faster is a tiny bar next to it.\n\nKey points\n• Median: about 7.7% more PR throughput\n• Even top teams: under 2x\n• Far from the hype\n\nCheck before the talk: confirm 7.7% and \"under 2x\" in the video.\n\nSources\nhttps://www.youtube.com/watch?v=Se8jHLliLXE\nhttps://daily.dev/posts/the-state-of-ai-in-software-development-data-from-400-orgs-justin-reock-dx-9leiovhx3","the-data":"DX measures developer productivity in many companies. In this talk Justin Reock (Deputy CTO at DX) shows their data on about 200,000 engineers in more than 400 companies. This is not a survey of opinions; it combines system data (PRs, deploys) and developer feedback.\n\nKey points\n• ~200,000 engineers\n• 400+ companies\n• Measured, not guessed\n\nSources\nhttps://www.youtube.com/watch?v=Se8jHLliLXE","the-discovery-agent-gathers-evidence":"The discovery agent is a custom agent or a skill that reads every source of evidence:\n• the Jira ticket and linked issues\n• ADRs: decisions the team already made\n• C4 diagrams: system boundaries the solution must respect\n• the existing code and past PRs\n• Azure logs\n• designs\n\nEvery AC is backed by evidence, not guesses. It only has read-only tools, so it can't change anything.\n\nOpen question: where do Jakamo's tickets and docs live (Jira, Confluence, Azure DevOps)?","the-file-drift-guard":"The drift guard from part four, running in CI. A script compares the PR's changed files with the plan's file list. A file outside the plan is flagged. A missing test file means an AC is not covered. The result is posted as a PR comment.\n\nThe command name is an example; it's a short script you can write for your CI.","the-file-list-is-a-drift-guard":"At review, the diff is compared with the plan's file list.\n• A changed file that is not in the plan is a question: why did the agent touch it?\n• A planned test file that is missing means an AC (or a must-never rule) is not covered.\n\nThis check is mechanical, so machines can do it. Part five shows it running in CI.","the-hidden-value-of-review-comments":"Review comments are the best record of what the team cares about. A scheduled workflow reads the review comments once a week, groups them and posts the findings to a shared place. The team discusses them, and the common ones become rules, hooks or tests.\n\nThis is how the setup gets better every week.\n\nOpen question: where should the findings go at Jakamo (Teams, Confluence)?","the-hype":"These are the kinds of headlines everyone has seen. They are not quotes from one person; they are the general message in the news and on social media.\n\nThe question for the next slides: what happens when someone actually measures it across many companies?\n\nKey points\n• Headlines promise huge gains\n• Let's look at measured data","the-output-the-acs-file":"The output of discovery is one file. Each AC has its evidence link and the decisions behind it. The \"must never\" rules are listed. Out of scope is listed.\n\nThis file is the intent. Everything after this (plan, tests, review) points back to it.","the-plan-names-the-files":"The plan lists every file that will be changed and every file that will be created: one test per AC, a property test per \"must never\" rule, and an E2E test for the main user flow.\n\nThe file names are made-up examples for the stack.","the-pr-lists-the-evidence":"The PR description lists the evidence: each AC with its test and result, the must-never property tests, the docs, ADR and changelog, the recording, the diagram comparison and the drift report.\n\nThe human reads the evidence against the approved intent. That takes minutes, not hours.\n\nSources\nhttps://addyo.substack.com/p/agentic-verification","then-it-questions-you":"After reading the evidence, the agent asks the human, as long as needed. Multiple choice where possible, so answering is fast. It doesn't stop until each AC is precise.\n\nEvery answer is written down as a decision, so later you can see why an AC is the way it is.\n\nThe ADR number and PR number are made-up examples.","today":"Walk through the day quickly. Morning: why AI alone does not make teams much faster, how to set up the agent so we can trust its code, and how to talk to it. Afternoon: planning so the intent is clear, and validation so machines can check the result.\n\nThe hackathon at 15:00 is optional. People pick one technique from the day and build it for their own team.\n\nKey points\n• Five parts, each builds on the one before\n• Morning = trust the code, afternoon = trust the intent\n• Hackathon after 15:00","today-s-goal":"This is the goal for the whole day. Review is split into two layers.\n\nMachines check the code: types, lint, tests, static analysis, evals. Is the code what it is supposed to be?\nHumans check the intent: is this the right thing to build, and does it match what we planned?\n\nEvery part of today moves work from human review to machine review, so humans only review the intent.\n\nKey points\n• Two review layers\n• Machines: correctness\n• Humans: intent","two-review-layers":"Code review happens in two layers.\nLayer 1 runs inside the implementation loop, on every turn, while the agent works. Problems found here are fixed before anyone sees the code.\nLayer 2 runs at the PR, before merge.\n\nMost problems should die in layer 1. It is faster and cheaper.","using-more-ai-is-not-saving-more-time":"Juniors use AI the most. Staff+ engineers use less, spend fewer tokens, and save about the same amount of time.\n\nThe bars show the pattern, not exact numbers.\n\nAsk the room (1 minute): why? Typical answers: seniors know what to ask for, they give better context, they know when to stop, they review the output better. That is exactly what the rest of the day is about.\n\nKey points\n• More usage does not mean more value\n• How you use it matters more than how much\n\nSources\nhttps://www.youtube.com/watch?v=Se8jHLliLXE","vague-ac-vs-precise-ac":"Left: what most tickets say. Right: two precise ACs, each with one behavior.\n\nAC1: Given a logged-in user, when they save a phone number that isn't in E.164 format, then the save is blocked and the field shows \"Invalid phone number\".\nAC2: Given a logged-in user, when they save their profile more than 2 times within 1 second, then the third save is rejected with HTTP 429.\n\nEach AC has concrete values and a result you can test.","we-trust-the-code-now-what":"Part two made the code checkable by machines. But nothing checks that we built the right thing. That is why we start with a discovery session and then move to planning. Intent is what we aim to prove and validate.\n\nKey points\n• Code: machines check it\n• Intent: needs discovery and a plan","what-an-eval-is":"The words we use, from Anthropic's eval post:\n• Task: one test with an input and what counts as success.\n• Trials: several runs of the same task.\n• Graders: each checks one thing (tests pass, a skill was used, a rubric).\n• Score: the pass rate across trials. 67% = 2 of 3.\n\nSources\nhttps://www.anthropic.com/engineering/demystifying-evals-for-ai-agents","what-humans-still-do":"Humans don't disappear. They approve the intent, read the evidence, own the large and critical PRs, and stay accountable for what ships.","what-makes-an-ac-precise":"Five checks for an AC:\n1. One behavior per AC.\n2. Concrete values, not adjectives (\"fast\", \"nice\", \"secure\" are not values).\n3. Error cases and permissions are included.\n4. Out of scope is written down.\n5. Two people reading it would agree on pass or fail. (Same test as for eval tasks in part two.)\n\nAnd the shortcut: if you can't write the test for it, the AC isn't done.\n\nSources\nhttps://addyo.substack.com/p/agentic-verification","where-the-files-live":"Where a file lives decides who gets it.\n\nLocal: ~/.claude/, CLAUDE.local.md and .claude/settings.local.json are only yours. Good for personal preferences. When you click \"Yes, and don't ask again\", the rule goes into the local file.\n\nRepo: CLAUDE.md, .claude/rules, skills, agents, settings.json and .mcp.json are committed. Everyone working in the repo gets them, and changes are reviewed in PRs like code.\n\nCentral: managed settings (from the admin console or MDM), a company plugin marketplace and org connectors. One place for many teams. No personal settings file can override managed settings, so this is the place for security policy.\n\nSources\nhttps://code.claude.com/docs/en/best-practices\nhttps://code.claude.com/docs/en/settings","where-the-time-goes":"The reason the gains are small: writing code was never the bottleneck. The slow parts are understanding legacy code, coordination, code review, builds and handling incidents.\n\nWatch the animation: \"Write code\" shrinks because AI made it fast. \"Review\" grows and turns red, because more code now waits for humans to read it.\n\nKey points\n• Code generation got faster\n• Review, builds and coordination did not\n• The bottleneck moved to review\n\nSources\nhttps://www.youtube.com/watch?v=Se8jHLliLXE","where-we-are":"Recap of where we are: the setup is trusted, the intent is approved, and the agent is writing code. The question for this part: how do we know the result matches the intent, without a human reading every line?","your-setup-is-code-too-test-it":"Rules, skills and hooks are code too, and they change. How do you know a change made things better?\n\nAgents are not deterministic. The same prompt can give different results. If you try once and it looks fine, you have not proven anything. That is why evals run the same task several times and count passes.\n\nSources\nhttps://www.anthropic.com/engineering/demystifying-evals-for-ai-agents"}</script>
+<script>
+
+(function(){
+  const deck = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let cur = 0, step = 0, printing = false;
+
+  /* ---------- scale ---------- */
+  function fit(){
+    const open = document.body.classList.contains('notes-open');
+    const nav = document.querySelector('.site-nav'), top = nav && nav.offsetParent !== null ? nav.offsetHeight : 0;
+    const H = (open ? window.innerHeight*0.64 : window.innerHeight) - top;
+    const s = Math.min(window.innerWidth/1600, H/900);
+    deck.style.setProperty('--scale', s);
+    deck.style.top = (top + H/2)+'px';
+  }
+  window.addEventListener('resize', fit); document.addEventListener('fullscreenchange', fit); fit();
+
+  /* ---------- chrome + page numbers ---------- */
+  slides.forEach((s,i)=>{
+    if (s.classList.contains('content')){
+      const c = document.createElement('div'); c.className='chrome';
+      c.innerHTML = '<div class="wm">WUNDERDOG</div><div class="pg">'+(i+1)+'</div>';
+      s.prepend(c);
+    }
+  });
+
+  /* ---------- typing / counters ---------- */
+  deck.querySelectorAll('.typing').forEach(e=>{ e.dataset.text = e.textContent; e.textContent=''; });
+  function typeIt(e, instant){
+    clearInterval(e._t); const txt = e.dataset.text || '';
+    if (instant || reduce){ e.textContent = txt; e.classList.remove('busy'); return; }
+    let i = 0; e.textContent=''; e.classList.add('busy');
+    e._t = setInterval(()=>{ i++; e.textContent = txt.slice(0,i); if (i>=txt.length){ clearInterval(e._t); setTimeout(()=>e.classList.remove('busy'),600);} }, 32);
+  }
+  function untype(e){ clearInterval(e._t); e.textContent=''; e.classList.remove('busy'); }
+  function fmt(e,v){ const d=+(e.dataset.dec||0); return v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}) + (e.dataset.suffix||''); }
+  function countIt(e, instant){
+    cancelAnimationFrame(e._r);
+    const a=+(e.dataset.from||0), b=+(e.dataset.to||0);
+    if (instant || reduce){ e.textContent = fmt(e,b); return; }
+    const t0 = performance.now(), dur = 1300, delay = parseFloat(getComputedStyle(e).getPropertyValue('--d'))*1000 || 0;
+    e.textContent = fmt(e,a);
+    const tick = now=>{ const p = Math.min(1, Math.max(0,(now-t0-delay)/dur)); const k = 1-Math.pow(1-p,3);
+      e.textContent = fmt(e, a+(b-a)*k); if (p<1) e._r = requestAnimationFrame(tick); };
+    e._r = requestAnimationFrame(tick);
+  }
+  function uncount(e){ cancelAnimationFrame(e._r); e.textContent = fmt(e, +(e.dataset.from||0)); }
+  function owned(e, sel, attr){ // descendants (and self) whose nearest trigger is e
+    const list = []; if (e.matches(sel)) list.push(e);
+    e.querySelectorAll(sel).forEach(x=>{ if (x.closest('['+attr+']')===e) list.push(x); });
+    return list.filter(x=> x===e || !x.hasAttribute(attr) );
+  }
+  function activate(e, attr, on, instant){
+    owned(e,'.typing',attr).forEach(x=> on ? typeIt(x,instant) : untype(x));
+    owned(e,'.count',attr).forEach(x=> on ? countIt(x,instant) : uncount(x));
+  }
+  /* static counters (no trigger anywhere above) start at their final value */
+  deck.querySelectorAll('.count').forEach(x=>{ if(!x.closest('[data-s],[data-mv]')) x.textContent = fmt(x,+x.dataset.to); });
+
+  /* ---------- draw-path lengths ---------- */
+  function measure(root){ root.querySelectorAll('svg .draw').forEach(p=>{ try{ const L=p.getTotalLength(); p.style.setProperty('--len', Math.ceil(L)+1); }catch(_){} }); }
+
+  /* ---------- hooks ---------- */
+  const hooks = {};
+  const maxOf = s => { if (s._max!=null) return s._max; let m=0;
+    s.querySelectorAll('[data-s],[data-out],[data-mv]').forEach(e=>['s','out','mv'].forEach(k=>{ const v=parseInt(e.dataset[k],10); if(!isNaN(v)) m=Math.max(m,v); }));
+    return s._max=m; };
+
+  function applyStep(s, n, instant){
+    s.querySelectorAll('[data-s]').forEach(e=>{
+      const on = n >= +e.dataset.s, was = e.classList.contains('on');
+      if (on && !was){ e.classList.add('on'); activate(e,'data-s',true,instant); }
+      else if (!on && was){ e.classList.remove('on'); activate(e,'data-s',false); }
+      else if (on && instant) activate(e,'data-s',true,true);
+    });
+    s.querySelectorAll('[data-out]').forEach(e=> e.classList.toggle('gone', n >= +e.dataset.out));
+    s.querySelectorAll('[data-mv]').forEach(e=>{
+      const on = n >= +e.dataset.mv, was = e.classList.contains('mv');
+      if (on && !was){ e.classList.add('mv'); activate(e,'data-mv',true,instant); }
+      else if (!on && was){ e.classList.remove('mv'); activate(e,'data-mv',false); }
+    });
+    const h = hooks[s.dataset.hook]; if (h && h.step) h.step(s,n);
+  }
+
+  /* ---------- streak canvas (cover + dividers) ---------- */
+  function rnd(i){ const x = Math.sin(i*127.1+311.7)*43758.5453; return x-Math.floor(x); }
+  function drawStreaks(cv, t){
+    const ctx = cv.getContext('2d'), W=1600, H=900, s = cv.closest('.slide');
+    const [ox,oy] = (s.dataset.o||'980,520').split(',').map(Number); const dim = s.dataset.dim ? .72 : 1;
+    ctx.save(); ctx.globalCompositeOperation='source-over'; ctx.globalAlpha=1; ctx.filter='none';
+    let g = ctx.createLinearGradient(0,0,W,H); g.addColorStop(0,'#03060d'); g.addColorStop(.55,'#081430'); g.addColorStop(1,'#0a2a5e');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    ctx.globalCompositeOperation='lighter';
+    // warm glow, top right
+    let r = ctx.createRadialGradient(W*.97,H*.02,0,W*.97,H*.02,W*.62);
+    r.addColorStop(0,`rgba(255,112,40,${.8*dim})`); r.addColorStop(.4,`rgba(190,60,50,${.28*dim})`); r.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=r; ctx.fillRect(0,0,W,H);
+    // blue beam toward lower left
+    ctx.save(); ctx.translate(ox,oy); ctx.rotate(Math.atan2(H+260-oy, -420-ox));
+    [[1700,70,.85,'rgba(150,210,255,1)'],[1700,190,.45,'rgba(60,130,255,1)'],[1700,420,.28,'rgba(30,80,220,1)']].forEach(([len,sp,a,c],k)=>{
+      const lg = ctx.createLinearGradient(0,0,len,0); lg.addColorStop(0,c); lg.addColorStop(.3,'rgba(40,110,255,.55)'); lg.addColorStop(1,'rgba(10,30,90,0)');
+      ctx.fillStyle=lg; ctx.globalAlpha=a*dim; ctx.beginPath(); ctx.moveTo(0,-4); ctx.lineTo(len,-sp); ctx.lineTo(len,sp*.55); ctx.lineTo(0,4); ctx.closePath(); ctx.fill();
+    });
+    ctx.restore();
+    // rays to the upper right
+    const N = 54;
+    for (let i=0;i<N;i++){
+      const f = i/(N-1), a = -0.80 + f*0.58 + 0.016*Math.sin(t*0.55 + i*1.9);
+      const hue = f<.35 ? [255,120+f*200,40] : f<.7 ? [255,90+ (f-.35)*120,160+(f-.35)*200] : [200-(f-.7)*200,170+(f-.7)*150,255];
+      const len = 900 + rnd(i)*900, w = 1 + rnd(i+9)*7, al = (.18 + rnd(i+3)*.45) * (.75 + .25*Math.sin(t*0.9 + i)) * dim;
+      ctx.save(); ctx.translate(ox,oy); ctx.rotate(a);
+      const lg = ctx.createLinearGradient(0,0,len,0);
+      lg.addColorStop(0,'rgba(255,255,255,0)'); lg.addColorStop(.06,`rgba(255,240,230,${al})`);
+      lg.addColorStop(.3,`rgba(${hue[0]|0},${hue[1]|0},${hue[2]|0},${al*.9})`); lg.addColorStop(1,`rgba(${hue[0]|0},${hue[1]|0},${hue[2]|0},0)`);
+      ctx.strokeStyle=lg; ctx.lineWidth=w; ctx.globalAlpha=1;
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(len,0); ctx.stroke();
+      ctx.restore();
+    }
+    // hot core
+    let c = ctx.createRadialGradient(ox,oy,0,ox,oy,170); c.addColorStop(0,`rgba(255,235,210,${.95*dim})`); c.addColorStop(.2,`rgba(255,140,60,${.5*dim})`); c.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=c; ctx.fillRect(ox-200,oy-200,400,400);
+    ctx.restore();
+  }
+  let rafId = 0, lastDraw = 0;
+  hooks.streaks = {
+    enter(s){ const cv = s.querySelector('canvas'); cancelAnimationFrame(rafId);
+      const t0 = performance.now(); drawStreaks(cv,0);
+      if (reduce) return;
+      const loop = now=>{ if (now-lastDraw > 33){ drawStreaks(cv,(now-t0)/1000); lastDraw = now; } rafId = requestAnimationFrame(loop); };
+      rafId = requestAnimationFrame(loop); },
+    leave(){ cancelAnimationFrame(rafId); },
+    print(s){ drawStreaks(s.querySelector('canvas'), 0); }
+  };
+  slides.forEach(s=>{ const cv=s.querySelector('canvas.streaks'); if (cv) drawStreaks(cv,0); });
+
+  /* ---------- pass@k chart ---------- */
+  /* ---------- navigation ---------- */
+  const prog = document.getElementById('prog'), ctr = document.getElementById('ctr');
+  function setHash(){ try{ history.replaceState(null,'','#s'+(cur+1)); }catch(_){} }
+  function render(){ prog.style.width = ((cur + (maxOf(slides[cur]) ? step/maxOf(slides[cur]) : 1)) / slides.length * 100) + '%';
+    ctr.textContent = (cur+1)+' / '+slides.length; }
+  let onSlide = ()=>{};
+  let bc = null; try{ bc = new BroadcastChannel('wd-jakamo-ai-deck'); }catch(_){}
+  function go(i, n, instant, remote){
+    i = Math.max(0, Math.min(slides.length-1, i));
+    const prev = slides[cur];
+    if (i !== cur){
+      const h = hooks[prev.dataset.hook]; if (h && h.leave) h.leave(prev);
+      prev.classList.remove('active');
+      const p = prev; setTimeout(()=>{ if (!p.classList.contains('active')) applyStep(p,-1); }, 600);
+    }
+    const s = slides[i]; cur = i; step = Math.max(0, Math.min(maxOf(s), n));
+    const h = hooks[s.dataset.hook];
+    if (!s.classList.contains('active')){
+      if (h && h.enter) h.enter(s);
+      applyStep(s, -1); s.classList.add('active');
+      measure(s);
+      requestAnimationFrame(()=>requestAnimationFrame(()=>applyStep(s, step, instant)));
+    } else applyStep(s, step, instant);
+    render(); setHash(); onSlide();
+    if (!remote && bc) { try{ bc.postMessage({i:cur, n:step}); }catch(_){} }
+  }
+  /* autoplay: every step on a slide plays by itself once the slide opens */
+  let timers = [];
+  function stopAuto(){ timers.forEach(clearTimeout); timers = []; }
+  function paceOf(s, k){ // delay (ms) before step k (1-based)
+    const list = (s.dataset.pace||'').split(',').map(Number).filter(x=>!isNaN(x) && x>0);
+    return list[k-1] || list[list.length-1] || 950;
+  }
+  function autoplay(){
+    stopAuto(); const s = slides[cur], mx = maxOf(s), idx = cur; let t = 0;
+    for (let k = step+1; k <= mx; k++){
+      t += reduce ? 250 : paceOf(s,k);
+      const kk = k; timers.push(setTimeout(()=>{ if (cur===idx){ step = kk; applyStep(s, kk); render(); } }, t));
+    }
+  }
+  function next(){
+    const mx = maxOf(slides[cur]);
+    if (step < mx){ stopAuto(); go(cur, mx, true); }          // first press finishes the current animation
+    else if (cur < slides.length-1){ go(cur+1, 0); autoplay(); }
+  }
+  function prev(){ stopAuto(); if (cur > 0) go(cur-1, maxOf(slides[cur-1]), true); }
+
+  document.addEventListener('keydown', e=>{
+    if (e.target.closest && e.target.closest('textarea,[contenteditable="true"]')) { if (e.key==='Escape') e.target.blur(); return; }
+    if (e.target.closest && e.target.closest('input')) { if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) return; }
+    const ov = document.getElementById('ov');
+    if (ov.classList.contains('open')){ if (e.key==='Escape' || e.key==='o' || e.key==='O'){ toggleOv(false); } return; }
+    if (['ArrowRight','ArrowDown','PageDown',' ','Enter'].includes(e.key)){ if (e.key==='Enter' && e.target.closest('button')) return; e.preventDefault(); next(); }
+    else if (['ArrowLeft','ArrowUp','PageUp','Backspace'].includes(e.key)){ e.preventDefault(); prev(); }
+    else if (e.key==='Home'){ stopAuto(); go(0,0); autoplay(); } else if (e.key==='End'){ stopAuto(); go(slides.length-1, 0); autoplay(); }
+    else if (e.key==='r' || e.key==='R'){ replay(); }
+    else if (e.key==='o' || e.key==='O'){ toggleOv(true); }
+    else if (e.key==='f' || e.key==='F'){ fs(); }
+    else if ((e.key==='n' || e.key==='N') && notesOn){ toggleNotes(); }
+    else if (e.key==='Escape' && notesOpen){ toggleNotes(false); }
+  });
+  deck.addEventListener('click', e=>{ if (e.target.closest('.interactive,button,a,input,label')) return; next(); });
+  let tx=null, ty=null;
+  deck.addEventListener('touchstart', e=>{ tx=e.touches[0].clientX; ty=e.touches[0].clientY; }, {passive:true});
+  deck.addEventListener('touchend', e=>{ if (tx==null) return; const dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
+    if (Math.abs(dx)>40 && Math.abs(dx)>Math.abs(dy)){ dx<0 ? next() : prev(); } tx=null; });
+  document.getElementById('b-next').onclick = next;
+  document.getElementById('b-prev').onclick = prev;
+  document.getElementById('b-ov').onclick = ()=>toggleOv(true);
+  document.getElementById('b-fs').onclick = fs;
+  function fs(){ try{ if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); else document.exitFullscreen(); }catch(_){} }
+
+  /* overview */
+  const ovg = document.getElementById('ovg');
+  slides.forEach((s,i)=>{ const b=document.createElement('button'); b.type='button';
+    b.innerHTML = '<span>'+String(i+1).padStart(2,'0')+'</span>'+ (s.dataset.title||'');
+    b.onclick = ()=>{ toggleOv(false); stopAuto(); go(i,0); autoplay(); }; ovg.appendChild(b); });
+  function replay(){ stopAuto(); const s = slides[cur]; applyStep(s,-1); step = 0;
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ applyStep(s,0); render(); autoplay(); })); }
+  function toggleOv(open){ const ov=document.getElementById('ov'); ov.classList.toggle('open',open);
+    if (open){ ovg.querySelectorAll('button').forEach((b,i)=>b.classList.toggle('cur',i===cur)); const c=ovg.children[cur]; c && c.focus(); } }
+
+  /* idle UI */
+  let idle; function poke(){ document.body.classList.add('show-ui'); clearTimeout(idle); idle=setTimeout(()=>document.body.classList.remove('show-ui'),2500); }
+  ['mousemove','touchstart','keydown'].forEach(ev=>document.addEventListener(ev,poke,{passive:true})); poke();
+
+  /* print: every slide in its final state */
+  function prepPrint(){ printing = true; stopAuto(); cancelAnimationFrame(rafId);
+    slides.forEach(s=>{ const h=hooks[s.dataset.hook]; if (h && h.print) h.print(s); measure(s); applyStep(s, maxOf(s), true); s.classList.add('active'); }); }
+  function endPrint(){ printing = false; slides.forEach((s,i)=>{ if (i!==cur){ s.classList.remove('active'); applyStep(s,-1);} }); go(cur, step, true); const h=hooks[slides[cur].dataset.hook]; if (h && h.enter) h.enter(slides[cur]); }
+  window.addEventListener('beforeprint', prepPrint);
+  window.addEventListener('afterprint', endPrint);
+  window.__prepPrint = prepPrint;
+
+  /* ---------- presenter sync between tabs ---------- */
+  if (bc) bc.onmessage = e=>{ const d = e.data||{}; if (typeof d.i !== 'number') return; stopAuto(); go(d.i, d.n|0, true, true); if ((d.n|0)===0) autoplay(); };
+
+  /* ---------- presenter notes: read-only, from #static-notes ---------- */
+  const slug = t => (t||'').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,80);
+  slides.forEach((s,i)=>{ s.dataset.key = slug(s.dataset.title) || ('slide-'+(i+1)); });
+  const np = document.getElementById('np'), nta = document.getElementById('np-text'), nst = document.getElementById('np-status'), nti = document.getElementById('np-title'), bnotes = document.getElementById('b-notes');
+  let notesOn = false, notesOpen = false, notesDb = null, notes = {}, dirty = false, saveT = null, saving = Promise.resolve();
+  function showNote(){
+    if (!notesOn) return;
+    const s = slides[cur], key = s.dataset.key;
+    nti.textContent = (cur+1)+' · '+(s.dataset.noteTitle||s.dataset.title||'');
+    if (nta.dataset.key !== key || !dirty){ nta.value = notes[key] || ''; nta.dataset.key = key; dirty = false; }
+    nst.textContent = nta.readOnly ? '' : (notes[key] ? 'Saved' : 'No notes yet');
+  }
+  onSlide = showNote;
+  function toggleNotes(open){
+    if (!notesOn) return;
+    notesOpen = open === undefined ? !notesOpen : open;
+    np.hidden = !notesOpen; document.body.classList.toggle('notes-open', notesOpen); fit();
+    if (notesOpen) showNote();
+  }
+  async function saveNote(key, text){
+    nst.textContent = 'Saving…';
+    try{
+      const title = (slides.find(x=>x.dataset.key===key)||{dataset:{}}).dataset.title || '';
+      await notesDb.doc('notes/'+key).set({text, title, updatedAt: new Date().toISOString()});
+      notes[key] = text; if (slides[cur].dataset.key === key) nst.textContent = 'Saved';
+    }catch(err){ nst.textContent = 'Not saved ('+((err&&err.code)||'error')+')'; }
+  }
+  nta.addEventListener('input', ()=>{
+    dirty = true; const key = nta.dataset.key, text = nta.value; nst.textContent = 'Editing…';
+    clearTimeout(saveT); saveT = setTimeout(()=>{ saving = saving.then(()=>saveNote(key, text)); if (nta.dataset.key===key) dirty = false; }, 900);
+  });
+  bnotes.onclick = ()=>toggleNotes();
+  document.getElementById('np-close').onclick = ()=>toggleNotes(false);
+  /* Outside Claude (for example GitHub Pages) everyone gets the speaker notes saved in #static-notes, read-only. */
+  function useStaticNotes(){
+    let fixed = {};
+    try{ fixed = JSON.parse(document.getElementById('static-notes').textContent || '{}'); }catch(_){}
+    if (!Object.keys(fixed).length) return;
+    notes = fixed; notesOn = true; bnotes.hidden = false; nta.readOnly = true; nta.placeholder = 'No notes for this slide';
+    document.getElementById('np-who').textContent = 'Speaker notes';
+    document.getElementById('hint').textContent = '→ next slide · R replay · O overview · N notes';
+  }
+  useStaticNotes();
+
+  /* start */
+  const m = /^#s(\d+)$/.exec(location.hash||'');
+  go(m ? (+m[1]-1) : 0, 0); autoplay();
+})();
+
+</script>
+</body></html>

@@ -1,0 +1,17 @@
+{
+  "name": "ai-driven-development-day",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "docs:slides": "tsx scripts/build-slides-pdf.ts",
+    "test": "tsx scripts/build-slides-pdf.ts --check"
+  },
+  "devDependencies": {
+    "pdf-lib": "^1.17.1",
+    "playwright": "^1.63.0",
+    "tsx": "^4.23.15"
+  }
+}
