@@ -15,11 +15,12 @@ body { margin: 0; min-height: 100vh; background: #03060d; color: var(--fg); font
 canvas.wd-streaks { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; display: block; }
 .site-nav { --n-bg: rgba(3, 6, 13, .35); --n-line: rgba(139, 184, 240, .25); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 .wrap { width: 100%; max-width: 1120px; margin: 0 auto; box-sizing: border-box; padding: 0 16px; }
-.hero { padding: 88px 0 40px; color: var(--wd-offwhite); }
+.hero { flex: 1; display: flex; align-items: center; padding: 48px 0; color: var(--wd-offwhite); text-align: center; }
+.hero .wrap { display: flex; flex-direction: column; align-items: center; }
 .hero .kicker { font-family: var(--mono); font-size: 14px; letter-spacing: .04em; color: var(--wd-light-blue); }
-h1 { margin: 8px 0 16px; max-width: 16ch; font-size: clamp(40px, 7vw, 72px); line-height: 1.05; font-weight: 500; letter-spacing: -.01em; color: var(--wd-sand); }
+h1 { margin: 0 0 16px; max-width: 16ch; font-size: clamp(40px, 7vw, 72px); line-height: 1.05; font-weight: 500; letter-spacing: -.01em; color: var(--wd-sand); }
 .hero p { margin: 0; max-width: 56ch; font-size: 18px; color: var(--muted); }
-.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 28px; }
 .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 999px; font-weight: 500; text-decoration: none; color: var(--wd-navy); background: var(--wd-sand); }
 .btn.ghost { color: var(--wd-offwhite); background: transparent; border: 1.5px solid rgba(139, 184, 240, .55); }
 .btn:focus-visible { outline: 2px solid var(--wd-light-blue); outline-offset: 3px; }
@@ -33,7 +34,7 @@ h1 { margin: 8px 0 16px; max-width: 16ch; font-size: clamp(40px, 7vw, 72px); lin
 .day small { display: block; font-size: 15px; color: var(--muted); }
 .day .row { opacity: .6; }
 @media (max-width: 560px) { .day a, .day .row { grid-template-columns: 56px 1fr; } .day .no { display: none; } }
-footer { margin-top: auto; border-top: 1px solid rgba(139, 184, 240, .25); background: rgba(3, 6, 13, .35); }
+footer { border-top: 1px solid rgba(139, 184, 240, .25); background: rgba(3, 6, 13, .35); }
 footer .wrap { padding-top: 20px; padding-bottom: 32px; font-size: 14px; color: var(--muted); }
 </style>
 </head>
@@ -52,7 +53,6 @@ footer .wrap { padding-top: 20px; padding-bottom: 32px; font-size: 14px; color: 
 
 <header class="hero">
   <div class="wrap">
-    <div class="kicker">Jakamo x Wunderdog · one-day training</div>
     <h1>AI-native development</h1>
     <p>How to work with coding agents so the team gets faster, not just the typing. Machines check the code. Humans check the intent.</p>
     <div class="actions">
@@ -62,17 +62,6 @@ footer .wrap { padding-top: 20px; padding-bottom: 32px; font-size: 14px; color: 
   </div>
 </header>
 
-<main class="wrap">
-  <ol class="day" aria-label="The day">
-    <li><a href="slides/#s3"><span class="tm">10:00</span><span class="no">01</span><span><b>Where AI really is today</b><small>What the data says about AI and productivity</small></span></a></li>
-    <li><a href="slides/#s14"><span class="tm">10:30</span><span class="no">02</span><span><b>Agent setup</b><small>From request to guarantee: rules, skills, subagents, hooks, MCP, evals</small></span></a></li>
-    <li><a href="slides/#s37"><span class="tm">11:20</span><span class="no">03</span><span><b>Talking to the agent</b><small>Prompts, evidence, steering, skills you call directly</small></span></a></li>
-    <li><div class="row"><span class="tm">12:00</span><span class="no">–</span><span><b>Lunch</b></span></div></li>
-    <li><a href="slides/#s44"><span class="tm">13:00</span><span class="no">04</span><span><b>Planning: precise intent</b><small>Discovery, precise acceptance criteria, sequence diagrams, plans that name the files</small></span></a></li>
-    <li><a href="slides/#s63"><span class="tm">14:00</span><span class="no">05</span><span><b>Validation at scale</b><small>Two review layers, evidence in the PR, grading PRs</small></span></a></li>
-    <li><div class="row" style="opacity:1"><span class="tm">15:00</span><span class="no">+</span><span><b>Optional hackathon</b><small>Build one check for your own team</small></span></div></li>
-  </ol>
-</main>
 
 <footer>
   <div class="wrap">Training material copyright Wunderdog.</div>
