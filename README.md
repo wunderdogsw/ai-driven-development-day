@@ -10,7 +10,7 @@ Jakamo AI-native training day material: a one-day training on working with codin
 
 | Time | Part | |
 |---|---|---|
-| 10:00 | 01 Where AI really is today | What the data says about AI and productivity |
+| 10:00 | 01 Where AI is today | What the data says about AI and productivity |
 | 10:30 | 02 Agent setup | From request to guarantee: rules, skills, subagents, hooks, MCP, evals |
 | 11:20 | 03 Talking to the agent | Prompts, evidence, steering, skills you call directly |
 | 12:00 | Lunch | |
@@ -37,7 +37,7 @@ No repo you can use? Pair with someone who has one, or follow the talks.
 
 **Examples.** The guide drafts every skill from a reference in [`examples/`](examples/): `add-ef-migration`, `discover`, `plan`, `implement` and `review`, with their subagents. Read them on the website: **[Examples](https://wunderdogsw.github.io/ai-driven-development-day/examples/)**, with a note on why each part is there and a Click to Copy button on every file.
 
-Before the day: Claude Code 2.1.283 or later (logged in), Git, Node.js 22+, and your repo cloned. Make sure you are allowed to run an agent on it.
+Before the day: Claude Code 2.1.283 or later (logged in), Git, Node.js 22.12+, and your repo cloned. Make sure you are allowed to run an agent on it.
 
 ## What's in the repo
 
